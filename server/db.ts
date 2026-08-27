@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertLearnerProfile, InsertUser, learnerProfiles, users, learningMissions, learnerProjects, memoryItems, opportunities, savedOpportunities, roadmapStates, chatConversations, chatMessages, learnerAchievements, learnerSettings, portfolioDrafts } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,100 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function getLearnerProfile(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(learnerProfiles).where(eq(learnerProfiles.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function listLearnerProjects(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(learnerProjects).where(eq(learnerProjects.userId, userId));
+}
+
+export async function listLearnerMissions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(learningMissions).where(eq(learningMissions.userId, userId));
+}
+
+export async function listMemoryItems(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(memoryItems).where(eq(memoryItems.userId, userId));
+}
+
+export async function deleteMemoryItems(userId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(memoryItems).set({ isDeleted: true, deletedAt: new Date() }).where(eq(memoryItems.userId, userId));
+}
+
+export async function listOpportunities() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(opportunities);
+}
+
+export async function listSavedOpportunities(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(savedOpportunities).where(eq(savedOpportunities.userId, userId));
+}
+
+export async function listRoadmapStates(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(roadmapStates).where(eq(roadmapStates.userId, userId));
+}
+
+export async function listChatConversations(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(chatConversations).where(eq(chatConversations.userId, userId));
+}
+
+export async function listChatMessages(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(chatMessages).where(eq(chatMessages.userId, userId));
+}
+
+export async function listAchievements(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(learnerAchievements).where(eq(learnerAchievements.userId, userId));
+}
+
+export async function getLearnerSettings(userId: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.select().from(learnerSettings).where(eq(learnerSettings.userId, userId)).limit(1);
+  return result[0];
+}
+
+export async function listPortfolioDrafts(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(portfolioDrafts).where(eq(portfolioDrafts.userId, userId));
+}
+
+export async function upsertLearnerProfile(userId: number, profile: Omit<InsertLearnerProfile, "userId">) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const values: InsertLearnerProfile = { userId, ...profile };
+  await db.insert(learnerProfiles).values(values).onDuplicateKeyUpdate({
+    set: {
+      careerGoal: profile.careerGoal,
+      experienceLevel: profile.experienceLevel,
+      dailyMinutes: profile.dailyMinutes,
+      interests: profile.interests,
+      learningStyle: profile.learningStyle,
+      memoryEnabled: profile.memoryEnabled,
+      updatedAt: new Date(),
+    },
+  });
+  return getLearnerProfile(userId);
+}
