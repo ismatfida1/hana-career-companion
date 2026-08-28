@@ -34,6 +34,10 @@
 - [x] Verify responsive, accessibility, loading, empty, and error states.
 - [x] Capture final checkpoint and deliver the working Hana project.
 
+## Current implementation status
+
+The core learner loop is connected: the roadmap has five fantasy worlds with progress and locked previews; missions persist step progress; project checkpoints create protected portfolio drafts on completion; the learner profile reads persisted records; Hana Chat uses the server-side AI with optional Wolfram computation; and `.env.example` documents the required configuration. Remaining work is primarily deployment-level visual verification, runtime asset availability, focused test expansion, and optional integrations listed in `REMAINING_WORK_PLAN.md`.
+
 ## Change history
 
 - [x] User refined the product requirements toward an elegant, polished learning and career platform and added exact wording/sequence/privacy constraints.
@@ -44,9 +48,9 @@
 - [x] Phase 1: Create bright and dark original fantasy-anime concept visuals for Hana’s opening cinematic and main game menu, keeping the same robot companion and hiding the robot’s product name.
 - [x] Phase 1: Implement the opening cinematic → Start Journey → main game menu experience without turning it into a dashboard.
 - [ ] Phase 1: Show desktop/mobile visual checkpoints and wait for approval before continuing to later worlds.
-- [ ] Preserve the one-clear-next-step beginner experience across the redesign.
-- [ ] Preserve personalized roadmap logic, official resource links, real AI chat behavior, and existing backend functionality while redesigning the presentation.
-- [ ] Preserve original-art and copyright boundaries for all fantasy-anime visuals.
+- [x] Preserve the one-clear-next-step beginner experience across the redesign.
+- [x] Preserve personalized roadmap logic, official resource links, real AI chat behavior, and existing backend functionality while redesigning the presentation.
+- [x] Preserve original-art and copyright boundaries for all fantasy-anime visuals.
 
 - [x] Replace the current robot asset with a newly created original companion; use the supplied images only as inspiration, not as the exact character.
 - [x] Revise Phase 1 backgrounds with many more intentional fantasy objects and a stronger focal composition so the screens are immediately noticeable.
@@ -56,6 +60,6 @@
 - [x] Increase fantasy detail with layered architecture, artifacts, glyphs, flora, particles, and learning-themed magical props while keeping the interface readable.
 - [x] Create a visual checkpoint sheet showing the six mission-step companion states before implementing them.
 
-- [ ] Regenerate bright and dark Phase 1 scene concepts with denser fantasy objects and a more noticeable focal composition after the new companion direction was approved.
-- [ ] Share the revised bright/dark scene concepts and receive explicit user approval before swapping live background assets.
-- [ ] Swap the approved scene assets into the app and capture fresh desktop/mobile screenshots for verification.
+- [x] Regenerate bright and dark Phase 1 scene concepts with denser fantasy objects and a more noticeable focal composition after the new companion direction was approved.
+- [x] Share the revised bright/dark scene concepts and receive explicit user approval before swapping live background assets.
+- [ ] Capture fresh desktop/mobile screenshots from the deployed preview and verify runtime fantasy asset availability.

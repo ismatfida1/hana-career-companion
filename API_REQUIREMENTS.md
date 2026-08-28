@@ -29,7 +29,7 @@ The Opportunities screen now reads from the existing typed `opportunities.list` 
 
 ## What I need from you before wiring the remaining APIs
 
-1. **AI provider decision.** Confirm that Hana should use the built-in server-side LLM service, or provide a different provider and model requirement. The current product needs a real `ai.chat` procedure; the visible chat UI is still demo behavior and should be replaced with a protected server mutation that applies memory controls and learner context.
+1. **AI provider decision.** The current implementation uses the built-in server-side LLM service through a protected `ai.chat` procedure. OpenAI/Gemini-compatible provider changes are optional and should not replace the existing Hana conversation flow without a deliberate product decision.
 
 2. **Database/deployment configuration.** Provide or connect the production MySQL/TiDB database and confirm that learner data should be persisted across devices. Without `DATABASE_URL`, the app can render its fallback UI but cannot save learner records.
 
@@ -39,11 +39,11 @@ The Opportunities screen now reads from the existing typed `opportunities.list` 
 
 5. **Notifications scope.** Confirm whether Hana should send email, in-app, or platform notifications. This determines whether we need an external email provider, a browser notification permission flow, or only the existing platform notification path.
 
-6. **Phase 1 visual approval.** The code references the revised bright and dark world assets under `/manus-storage/`, but the TODO still marks the final asset swap and desktop/mobile checkpoint as incomplete. I need approval of the final scene direction before replacing those live backgrounds.
+6. **Phase 1 visual verification.** The approved robot/background direction is integrated into the opening flow, and the roadmap uses the approved fantasy presentation. Remaining verification is a deployment-level desktop/mobile review of runtime `/manus-storage/` assets.
 
 ## Recommended first API pass
 
-The smallest useful production pass is **Manus OAuth + MySQL/TiDB + built-in LLM + storage**. I would then implement the protected chat procedure, persist conversations and memory decisions, connect the existing profile/roadmap/project queries to the screens, and keep opportunities curated in the database until a reliable source API is selected. Voice, notifications, GitHub, and calendar integrations can remain opt-in extensions.
+The smallest useful production pass is **Manus OAuth + MySQL/TiDB + built-in LLM + storage**. These core flows are now implemented: protected Hana chat with learner context and memory controls, persisted profile/roadmap/project/opportunity/portfolio records, the fantasy roadmap, and optional Wolfram computation. Voice, notifications, GitHub, calendar, and live opportunity ingestion remain opt-in extensions.
 
 ## Existing environment variables
 
@@ -68,9 +68,9 @@ The protected `ai.compute` procedure can verify the backend directly after confi
 
 ## Immediate implementation gaps unrelated to credentials
 
-The backend currently exposes read procedures for most learner records and a profile-save mutation, but it does not yet expose the complete write surface implied by the UI. The next implementation pass should add protected mutations for chat messages/conversations, mission progress, project checkpoints, saved-opportunity status, settings, and portfolio drafts. This is application work rather than a new external API requirement.
+The core write surface is now present: protected mutations cover mission progress, project checkpoints, saved-opportunity status, settings, portfolio drafts, and Hana chat persistence. The current remaining gaps are production-level visual verification, runtime asset availability, a deliberate opportunity ingestion strategy, and optional voice/notification/account integrations. These are application or deployment decisions rather than blockers for the core learner journey.
 
-The current chat screen is also locally scripted rather than connected to an AI procedure. That is the main blocker between the polished prototype and a real Hana companion.
+
 
 ## Decision summary
 
