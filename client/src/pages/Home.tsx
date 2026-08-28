@@ -43,6 +43,7 @@ import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useTheme } from "@/contexts/ThemeContext";
+import { roadmapResourceSelections } from "@/data/resourceLibrary";
 
 type View = "home" | "roadmap" | "mission" | "projects" | "opportunities" | "chat" | "profile" | "settings" | "onboarding";
 
@@ -259,6 +260,13 @@ const roadmapResources: Record<RoadmapLocation, RoadmapResource[]> = {
   ],
 };
 
+const roadmapCatalogResources: Record<RoadmapLocation, RoadmapResource[]> = {
+  spark: roadmapResourceSelections.spark.map(item => ({ title: item.title, source: new URL(item.url).hostname.replace(/^www\\./, ""), format: item.role === "primary" ? "Primary learning" : item.role === "practice" ? "Optional practice" : "Project challenge", minutes: item.role === "primary" ? "Start here" : item.role === "practice" ? "Practice next" : "Build proof", url: item.url, why: item.role === "primary" ? "A focused starting point for this chapter of your learning path." : item.role === "practice" ? "Use this to repeat the idea with your own hands." : "Turn the concept into visible evidence you can return to." })),
+  logic: roadmapResourceSelections.logic.map(item => ({ title: item.title, source: new URL(item.url).hostname.replace(/^www\\./, ""), format: item.role === "primary" ? "Primary learning" : item.role === "practice" ? "Optional practice" : "Project challenge", minutes: item.role === "primary" ? "Start here" : item.role === "practice" ? "Practice next" : "Build proof", url: item.url, why: item.role === "primary" ? "A focused starting point for this chapter of your learning path." : item.role === "practice" ? "Use this to repeat the idea with your own hands." : "Turn the concept into visible evidence you can return to." })),
+  loop: roadmapResourceSelections.loop.map(item => ({ title: item.title, source: new URL(item.url).hostname.replace(/^www\\./, ""), format: item.role === "primary" ? "Primary learning" : item.role === "practice" ? "Optional practice" : "Project challenge", minutes: item.role === "primary" ? "Start here" : item.role === "practice" ? "Practice next" : "Build proof", url: item.url, why: item.role === "primary" ? "A focused starting point for this chapter of your learning path." : item.role === "practice" ? "Use this to repeat the idea with your own hands." : "Turn the concept into visible evidence you can return to." })),
+  algorithm: roadmapResourceSelections.algorithm.map(item => ({ title: item.title, source: new URL(item.url).hostname.replace(/^www\\./, ""), format: item.role === "primary" ? "Primary learning" : item.role === "practice" ? "Optional practice" : "Project challenge", minutes: item.role === "primary" ? "Start here" : item.role === "practice" ? "Practice next" : "Build proof", url: item.url, why: item.role === "primary" ? "A focused starting point for this chapter of your learning path." : item.role === "practice" ? "Use this to repeat the idea with your own hands." : "Turn the concept into visible evidence you can return to." })),
+};
+
 function RoadmapView({ onMission }: { onMission: () => void }) {
   const { data: profile } = trpc.learner.profile.useQuery();
   const { data: learnerMissions } = trpc.learner.missions.useQuery();
@@ -268,7 +276,7 @@ function RoadmapView({ onMission }: { onMission: () => void }) {
   const [pressed, setPressed] = useState(false);
   const goal = profile?.careerGoal || "software engineering";
   const selected = roadmapLocationCopy[selectedLocation];
-  const selectedResources = roadmapResources[selectedLocation];
+  const selectedResources = roadmapCatalogResources[selectedLocation].length ? roadmapCatalogResources[selectedLocation] : roadmapResources[selectedLocation];
   const selectedState = roadmapStates?.find(state => state.nodeKey.toLowerCase().includes(selectedLocation));
   const experience = profile?.experienceLevel || "Beginner";
   const focusInterest = profile?.interests?.split(",")[0]?.trim();
