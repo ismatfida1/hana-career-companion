@@ -29,3 +29,7 @@ The corrected Roadmap route was tested interactively. Selecting the Logic Gatewa
 ## Exact Chat vision checkpoint
 
 The `/chat` route now uses the user-supplied Chat with Hana illustration as its full-screen canvas: https://files.manuscdn.com/user_upload_by_module/session_file/310519663907899784/JBuyxmYjToCUHehH.png. The real conversation stream, quick prompts, Ask Hana textarea/send action, memory toggle, inspect-memory modal, and Hana context data remain live HTML controls layered over the scene. The latest browser checkpoint is `/home/ubuntu/screenshots/127_0_0_1_2026-08-28_08-24-53_4500.webp`.
+
+## Chat no-overlap responsive checkpoint
+
+The mobile Chat layout now renders the complete supplied 16:9 illustration in its own scene region, followed by a separate live Hana conversation panel and then memory controls. The illustration’s baked-in sample text is not covered by live HTML, and the live message text, quick prompts, textarea, and send button wrap within their own bounded panel. Fresh mobile capture: `concepts/chat-vision-mobile-final.png`.

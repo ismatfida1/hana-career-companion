@@ -421,3 +421,34 @@ button:active { transform: scale(.98); }
 .chat-vision-ui > .grid > section > div:last-child { border-color: rgba(255,246,216,.5); background: rgba(255,249,233,.46); }
 .chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] { background: rgba(236,247,234,.58); }
 .chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] + button, .chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] ~ button { background: rgba(255,248,229,.48); }
+
+/* Mobile Chat fidelity: preserve the complete 16:9 supplied scene at the top, then flow live controls below it for a usable narrow layout. */
+@media (max-width: 760px) {
+  .chat-vision-world { min-height: 100svh; overflow-y: auto; }
+  .chat-vision-art { position: relative; inset: auto; z-index: 0; display: block; height: auto; min-height: 0; width: 100%; object-fit: contain; object-position: center top; }
+  .chat-vision-vignette { display: none; }
+  .chat-vision-ui { position: relative; inset: auto; z-index: 1; margin-top: -1.25rem; padding: 0 .75rem 1rem; }
+  .chat-vision-ui > .grid { position: relative; inset: auto; display: block; overflow: visible; padding-bottom: 0; }
+  .chat-vision-ui > .grid > section { min-height: 62svh; }
+  .chat-vision-ui > .grid > aside { display: grid; grid-template-columns: 1fr; gap: .75rem; margin-top: .75rem; }
+}
+
+/* Strict no-overlap Chat layout: the supplied artwork occupies its own scene region; live content uses separate bounded panels below. */
+.chat-vision-world { min-height: 100vh; overflow-y: auto; background: #071d2b; }
+.chat-vision-art { position: relative; inset: auto; z-index: 0; display: block; height: auto; aspect-ratio: 16 / 9; width: 100%; object-fit: contain; object-position: center top; }
+.chat-vision-vignette { display: none; }
+.chat-vision-ui { position: relative; inset: auto; z-index: 1; padding: 1.25rem clamp(1rem, 4vw, 4rem) 2rem; }
+.chat-vision-ui > .grid { position: relative; inset: auto; display: grid; grid-template-columns: minmax(0, 1fr) 22rem; gap: 1.25rem; max-width: 76rem; margin: 0 auto; }
+.chat-vision-ui > .grid > section { min-height: 36rem; border: 1px solid rgba(218,199,163,.8); border-radius: 1.5rem; background: #fff8e8; padding: 1.25rem 1.5rem; box-shadow: 0 18px 40px rgba(0,8,14,.22); }
+.chat-vision-ui > .grid > aside { display: flex; min-width: 0; flex-direction: column; gap: 1.25rem; }
+.chat-vision-ui > .grid > aside .surface-card { border: 1px solid rgba(218,199,163,.8); border-radius: 1.25rem; background: #fff8e8; box-shadow: 0 18px 40px rgba(0,8,14,.18); }
+.chat-vision-ui .surface-card { backdrop-filter: none; }
+.chat-vision-ui > .grid > section > div:first-child { border-color: #e1d2b3; }
+.chat-vision-ui > .grid > section > div:last-child { border: 1px solid #e1d2b3; background: #fffdf7; }
+@media (max-width: 760px) {
+  .chat-vision-art { aspect-ratio: 16 / 9; object-fit: contain; background: #071d2b; }
+  .chat-vision-ui { margin-top: 0; padding: .9rem .75rem 1.5rem; }
+  .chat-vision-ui > .grid { display: block; }
+  .chat-vision-ui > .grid > section { min-height: 34rem; padding: 1rem; }
+  .chat-vision-ui > .grid > aside { margin-top: .9rem; }
+}
