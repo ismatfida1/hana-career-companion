@@ -239,14 +239,39 @@ const roadmapLocationCopy: Record<RoadmapLocation, { label: string; detail: stri
   algorithm: { label: "Algorithm Peak", detail: "A later destination for thinking and building bigger solutions with confidence.", state: "Locked for now" },
 };
 
+type RoadmapResource = { title: string; source: string; format: string; minutes: string; url: string; why: string };
+const roadmapResources: Record<RoadmapLocation, RoadmapResource[]> = {
+  spark: [
+    { title: "Python Tutorial", source: "Python.org", format: "Official tutorial", minutes: "20 min start", url: "https://docs.python.org/3/tutorial/index.html", why: "A calm first reference for your beginner foundation and examples-first learning style." },
+    { title: "Getting Started with Version Control", source: "Pro Git", format: "Official book", minutes: "15 min start", url: "https://git-scm.com/book/en/v2/Getting-Started-About-Version-Control", why: "Connects your first coding experiments to saving work safely with Git." },
+  ],
+  logic: [
+    { title: "JavaScript Guide", source: "MDN Web Docs", format: "Reference guide", minutes: "25 min start", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide", why: "Builds the functions, decisions, and reusable steps that unlock this next chapter." },
+    { title: "Git Basics", source: "Pro Git", format: "Official book", minutes: "20 min start", url: "https://git-scm.com/book/en/v2/Git-Basics", why: "Gives your logic practice a durable home through commits, history, and remotes." },
+  ],
+  loop: [
+    { title: "JavaScript Guide · Control Flow", source: "MDN Web Docs", format: "Reference guide", minutes: "20 min start", url: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Control_flow_and_error_handling", why: "A focused guide for conditions, loops, and handling the unexpected without rushing ahead." },
+    { title: "Python Control Flow Tools", source: "Python.org", format: "Official tutorial", minutes: "20 min start", url: "https://docs.python.org/3/tutorial/controlflow.html", why: "Practices repetition in small steps that can become a useful project checkpoint." },
+  ],
+  algorithm: [
+    { title: "Introduction to web APIs", source: "MDN Web Docs", format: "Learn module", minutes: "15 min start", url: "https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Client-side_APIs/Introduction", why: "Shows how APIs abstract complexity so larger solutions stay understandable." },
+    { title: "Overview of HTTP", source: "MDN Web Docs", format: "Web guide", minutes: "15 min start", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview", why: "Connects your REST practice to the request-and-response system behind the web." },
+  ],
+};
+
 function RoadmapView({ onMission }: { onMission: () => void }) {
   const { data: profile } = trpc.learner.profile.useQuery();
   const { data: learnerMissions } = trpc.learner.missions.useQuery();
+  const { data: roadmapStates } = trpc.learner.roadmap.useQuery();
   const currentMission = learnerMissions?.find(mission => mission.state !== "completed") ?? learnerMissions?.[0];
   const [selectedLocation, setSelectedLocation] = useState<RoadmapLocation>("spark");
   const [pressed, setPressed] = useState(false);
   const goal = profile?.careerGoal || "software engineering";
   const selected = roadmapLocationCopy[selectedLocation];
+  const selectedResources = roadmapResources[selectedLocation];
+  const selectedState = roadmapStates?.find(state => state.nodeKey.toLowerCase().includes(selectedLocation));
+  const experience = profile?.experienceLevel || "Beginner";
+  const focusInterest = profile?.interests?.split(",")[0]?.trim();
   const progress = currentMission?.progress ?? 0;
   const activateMission = () => {
     setPressed(true);
@@ -267,6 +292,10 @@ function RoadmapView({ onMission }: { onMission: () => void }) {
       </div>
       <section className="roadmap-vision-location" aria-live="polite"><p className="roadmap-vision-location-eyebrow">You are here</p><h2>{selected.label}</h2><p>{selected.detail}</p><span>{selected.state}</span></section>
       <div className="roadmap-vision-continue"><button type="button" onClick={activateMission} className="roadmap-vision-continue-button">Continue mission <ArrowRight className="h-5 w-5" /></button><span>{progress}% of today’s mission · {goal}</span></div>
+      <section className="roadmap-vision-resource-deck" aria-label="Personalized learning resources">
+        <div className="roadmap-vision-resource-heading"><div><p className="roadmap-vision-resource-eyebrow">Hana’s field notes · {experience}{focusInterest ? ` · ${focusInterest}` : ""}</p><h2>One clear way forward.</h2><p>Resources chosen for <strong>{goal}</strong> and this point on your path. Open one, try one small idea, then return to your mission.</p></div><span className="roadmap-vision-resource-status">{selectedState?.status === "completed" ? "World complete" : selectedState?.status === "in-progress" ? "In progress" : selected.state}</span></div>
+        <div className="roadmap-vision-resource-grid">{selectedResources.map(resource => <article key={resource.title} className="roadmap-vision-resource-card"><div className="roadmap-vision-resource-card-top"><span className="roadmap-vision-resource-source">{resource.source}</span><span>{resource.format}</span></div><h3>{resource.title}</h3><p>{resource.why}</p><div className="roadmap-vision-resource-card-bottom"><span>{resource.minutes} · verified source</span><a href={resource.url} target="_blank" rel="noreferrer">Open resource <ArrowRight className="h-4 w-4" /></a></div></article>)}</div>
+      </section>
     </main>
   );
 }

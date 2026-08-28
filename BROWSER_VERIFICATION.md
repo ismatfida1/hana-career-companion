@@ -33,3 +33,9 @@ The `/chat` route now uses the user-supplied Chat with Hana illustration as its 
 ## Chat no-overlap responsive checkpoint
 
 The mobile Chat layout now renders the complete supplied 16:9 illustration in its own scene region, followed by a separate live Hana conversation panel and then memory controls. The illustration’s baked-in sample text is not covered by live HTML, and the live message text, quick prompts, textarea, and send button wrap within their own bounded panel. Fresh mobile capture: `concepts/chat-vision-mobile-final.png`.
+
+## Personalized Roadmap resource checkpoint
+
+The Roadmap resource deck now flows below the exact illustrated map with no overlap. In Spark Garden it shows Python.org and Pro Git resources chosen for a beginner software-engineering goal. Selecting Logic Gateway updates the location detail, status, and resource cards to MDN JavaScript Guide and Pro Git Basics. The live map, hotspots, Continue Mission control, verified-source labels, and external links remain available.
+
+The mobile personalized Roadmap checkpoint keeps the complete illustrated map in its own top region, followed by a single-column field-notes panel. The resource cards wrap cleanly, retain source/type metadata, show verified-source labels, and keep Open resource actions visible. No text overlaps the map or another card.
