@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertLearnerProfile, InsertUser, learnerProfiles, users, learningMissions, learnerProjects, memoryItems, opportunities, savedOpportunities, roadmapStates, chatConversations, chatMessages, learnerAchievements, learnerSettings, portfolioDrafts } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -114,10 +114,58 @@ export async function listMemoryItems(userId: number) {
   return db.select().from(memoryItems).where(eq(memoryItems.userId, userId));
 }
 
+export async function createChatConversation(userId: number, title: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const result = await db.insert(chatConversations).values({ userId, title });
+  const conversationId = Number((result as { insertId?: number }).insertId);
+  if (!Number.isFinite(conversationId) || conversationId <= 0) return undefined;
+  return conversationId;
+}
+
+export async function createChatMessage(userId: number, conversationId: number, role: "user" | "assistant", content: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.insert(chatMessages).values({ userId, conversationId, role, content });
+  return { conversationId, role, content };
+}
+
 export async function deleteMemoryItems(userId: number) {
   const db = await getDb();
   if (!db) return;
   await db.update(memoryItems).set({ isDeleted: true, deletedAt: new Date() }).where(eq(memoryItems.userId, userId));
+}
+
+export async function updateMissionProgress(userId: number, missionId: number, progress: number, currentStep: string, state: "not-started" | "in-progress" | "completed") {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(learningMissions).set({ progress, currentStep, state, completedAt: state === "completed" ? new Date() : null, updatedAt: new Date() }).where(and(eq(learningMissions.id, missionId), eq(learningMissions.userId, userId)));
+  const result = await db.select().from(learningMissions).where(and(eq(learningMissions.id, missionId), eq(learningMissions.userId, userId))).limit(1);
+  return result[0];
+}
+
+export async function upsertSavedOpportunity(userId: number, opportunityId: number, status: "saved" | "planning" | "applied" | "accepted" | "rejected") {
+  const db = await getDb();
+  if (!db) return undefined;
+  const existing = await db.select().from(savedOpportunities).where(and(eq(savedOpportunities.userId, userId), eq(savedOpportunities.opportunityId, opportunityId))).limit(1);
+  if (existing[0]) {
+    await db.update(savedOpportunities).set({ status, updatedAt: new Date() }).where(and(eq(savedOpportunities.id, existing[0].id), eq(savedOpportunities.userId, userId)));
+    return { ...existing[0], status };
+  }
+  await db.insert(savedOpportunities).values({ userId, opportunityId, status });
+  return { userId, opportunityId, status };
+}
+
+export async function updateLearnerSettings(userId: number, settings: { hanaPersonality?: string; preferredExplanationStyle?: string; notificationsEnabled?: boolean; voiceEnabled?: boolean; memoryEnabled?: boolean }) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const existing = await getLearnerSettings(userId);
+  if (existing) {
+    await db.update(learnerSettings).set({ ...settings, updatedAt: new Date() }).where(eq(learnerSettings.userId, userId));
+  } else {
+    await db.insert(learnerSettings).values({ userId, ...settings });
+  }
+  return getLearnerSettings(userId);
 }
 
 export async function listOpportunities() {

@@ -40,3 +40,22 @@
 
 - [x] Replace the current illustrated Hana avatar with the user-provided Eilik robot reference across all relevant views.
 - [x] Verify the consistent robot identity on desktop and mobile layouts and save a correction checkpoint.
+
+- [x] Phase 1: Create bright and dark original fantasy-anime concept visuals for Hana’s opening cinematic and main game menu, keeping the same robot companion and hiding the robot’s product name.
+- [x] Phase 1: Implement the opening cinematic → Start Journey → main game menu experience without turning it into a dashboard.
+- [ ] Phase 1: Show desktop/mobile visual checkpoints and wait for approval before continuing to later worlds.
+- [ ] Preserve the one-clear-next-step beginner experience across the redesign.
+- [ ] Preserve personalized roadmap logic, official resource links, real AI chat behavior, and existing backend functionality while redesigning the presentation.
+- [ ] Preserve original-art and copyright boundaries for all fantasy-anime visuals.
+
+- [x] Replace the current robot asset with a newly created original companion; use the supplied images only as inspiration, not as the exact character.
+- [x] Revise Phase 1 backgrounds with many more intentional fantasy objects and a stronger focal composition so the screens are immediately noticeable.
+- [x] Provide a new concept checkpoint for the companion and object-rich bright/dark scenes before replacing the app visuals.
+
+- [x] Create distinct companion expressions, poses, and magical effects for Concept, Example, Try it, Feedback, Apply it, and Reflect.
+- [x] Increase fantasy detail with layered architecture, artifacts, glyphs, flora, particles, and learning-themed magical props while keeping the interface readable.
+- [x] Create a visual checkpoint sheet showing the six mission-step companion states before implementing them.
+
+- [ ] Regenerate bright and dark Phase 1 scene concepts with denser fantasy objects and a more noticeable focal composition after the new companion direction was approved.
+- [ ] Share the revised bright/dark scene concepts and receive explicit user approval before swapping live background assets.
+- [ ] Swap the approved scene assets into the app and capture fresh desktop/mobile screenshots for verification.

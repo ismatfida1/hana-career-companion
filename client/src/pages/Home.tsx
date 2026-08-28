@@ -42,6 +42,7 @@ import {
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useTheme } from "@/contexts/ThemeContext";
 
 type View = "home" | "roadmap" | "mission" | "projects" | "opportunities" | "chat" | "profile" | "settings" | "onboarding";
 
@@ -63,16 +64,29 @@ const roadmapStages = [
   { number: "05", title: "Career launch", subtitle: "Make your work visible", state: "locked", nodes: ["Portfolio", "Open source", "Interview prep"] },
 ];
 
-const opportunities = [
+type OpportunityCard = { id?: number; title: string; org: string; type: string; match: string; deadline: string; tags: string[]; tone: "coral" | "mint" | "lilac"; officialUrl?: string };
+
+const demoOpportunities: OpportunityCard[] = [
   { title: "Build for Tomorrow", org: "Civic Tech Lab", type: "Online hackathon", match: "Strong fit", deadline: "12 days", tags: ["Beginner-friendly", "Online", "Python"], tone: "coral" },
   { title: "Open Source Springboard", org: "Code Commons", type: "Mentored program", match: "Good fit", deadline: "24 days", tags: ["GitHub", "Mentorship", "Remote"], tone: "mint" },
   { title: "Women in Computing Fellowship", org: "Northstar Foundation", type: "Fellowship", match: "Explore", deadline: "41 days", tags: ["Students", "Community", "Career"], tone: "lilac" },
 ];
 
+const companionStates: Record<string, string> = {
+  concept: "/manus-storage/hana-mission-concept_f48fe2c0.png",
+  example: "/manus-storage/hana-mission-example_b1399bbd.png",
+  "try-it": "/manus-storage/hana-mission-try_3d4722c1.png",
+  feedback: "/manus-storage/hana-mission-feedback_6d89ab7b.png",
+  "apply-it": "/manus-storage/hana-mission-apply_e5a97fa2.png",
+  reflect: "/manus-storage/hana-mission-reflect_447ec078.png",
+  default: "/manus-storage/hana-new-companion-concept_628f65ae.png",
+};
+
 function HanaAvatar({ mood = "encouraging", small = false }: { mood?: string; small?: boolean }) {
+  const image = companionStates[mood] ?? companionStates.default;
   return (
-    <div className={cn("hana-avatar relative shrink-0 overflow-hidden rounded-[34%] bg-[#fff1dd] shadow-[0_12px_30px_rgba(208,112,92,0.18)]", small ? "h-12 w-12" : "h-20 w-20")} aria-label={`Hana is feeling ${mood}`}>
-      <img src="/manus-storage/hana-eilik-avatar_08717a4a.png" alt="Hana, the Eilik robot learning companion" className="h-full w-full object-cover" />
+    <div className={cn("hana-avatar relative shrink-0 overflow-hidden rounded-[34%] bg-[#142737] shadow-[0_12px_30px_rgba(49,91,108,0.2)]", `hana-avatar-${mood}`, small ? "h-12 w-12" : "h-20 w-20")} aria-label={`Hana is in the ${mood} learning state`}>
+      <img src={image} alt="Hana, the fantasy learning companion" className="h-full w-full object-cover" />
     </div>
   );
 }
@@ -179,7 +193,16 @@ function RoadmapView({ onMission }: { onMission: () => void }) {
 }
 
 function MissionView({ onBack }: { onBack: () => void }) {
-  const [step, setStep] = useState(0);
+  const missionPreviewStep = Number(new URLSearchParams(window.location.search).get("step"));
+  const [step, setStep] = useState(() => Number.isFinite(missionPreviewStep) ? Math.min(5, Math.max(0, missionPreviewStep)) : 0);
+  const { data: learnerMissions } = trpc.learner.missions.useQuery();
+  const updateMission = trpc.learner.updateMission.useMutation();
+  const activeMissionId = learnerMissions?.[0]?.id;
+  const moveToStep = (nextStep: number) => {
+    const boundedStep = Math.min(nextStep, 5);
+    setStep(boundedStep);
+    if (activeMissionId) updateMission.mutate({ missionId: activeMissionId, progress: boundedStep === 5 ? 100 : Math.round((boundedStep / 5) * 100), currentStep: ["Concept", "Example", "Try it", "Feedback", "Apply it", "Reflect"][boundedStep], state: boundedStep === 5 ? "completed" : "in-progress" });
+  };
   const [answer, setAnswer] = useState<string | null>(null);
   const explanationStyles = ["Simple", "Example", "Visual explanation", "Step-by-step", "Technical", "Interview style"];
   const [explanationStyle, setExplanationStyle] = useState("Simple");
@@ -193,7 +216,7 @@ function MissionView({ onBack }: { onBack: () => void }) {
     { title: "Reflect", body: "Could you explain what happens when your weather app sends a GET request? Use your own words—even a rough answer helps Hana see what clicked.", prompt: "Your reflection is private to your learning record.", choices: ["I can explain it", "I need a simpler explanation"] },
   ];
   const current = content[step];
-  return <div className="mx-auto max-w-5xl"><button onClick={onBack} className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#7b6d61] transition hover:text-[#315d58]"><ArrowRight className="h-4 w-4 rotate-180" /> Back to Home</button><div className="mission-shell rounded-[30px] border border-[#eadfd3] bg-[#fffaf4] p-5 shadow-[0_18px_45px_rgba(85,67,52,0.06)] md:p-8"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="eyebrow">Today’s mission · REST APIs</p><h1 className="display-title mt-2">Learn by doing.</h1></div><div className="rounded-full bg-[#e8f1ea] px-4 py-2 text-xs font-bold text-[#5d947f]">{step + 1} of {steps.length}</div></div><div className="mt-8 grid grid-cols-3 gap-1.5 md:grid-cols-6">{steps.map((label,index) => <button key={label} onClick={() => setStep(index)} className={cn("rounded-xl px-2 py-3 text-center text-[10px] font-bold uppercase tracking-[0.1em] transition md:text-xs", index === step ? "bg-[#315d58] text-white" : index < step ? "bg-[#e2efe7] text-[#57907c]" : "bg-[#f4ede6] text-[#b5a89a]")}>{index < step ? <Check className="mx-auto mb-1 h-3.5 w-3.5" /> : <span className="mb-1 block">0{index + 1}</span>}{label}</button>)}</div><div className="mt-10 grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start"><div className="flex flex-col items-center text-center lg:items-start lg:text-left"><HanaAvatar mood={step === 3 ? "proud" : "thinking"} /><span className="mt-4 pill pill-sage">{step === 0 ? "A clear place to start" : step === 5 ? "You’re doing the thinking" : "Hana is with you"}</span><p className="mt-4 max-w-xs text-sm leading-6 text-[#76695d]">No rush. The goal is not to get everything right—it’s to make the next idea a little clearer.</p></div><div className="rounded-[24px] bg-white p-6 shadow-[0_10px_30px_rgba(80,61,43,0.05)] md:p-8"><p className="eyebrow">{steps[step]}</p><h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-[#2d3c39]">{current.title}</h2><p className="mt-5 text-[15px] leading-7 text-[#5f6e69]">{current.body}</p><div className="mt-6 rounded-2xl bg-[#eff6f0] p-5 text-sm leading-6 text-[#4e7569]"><Sparkles className="mb-2 h-4 w-4 text-[#6ca595]" />{current.prompt}</div>{current.choices && <div className="mt-6 grid gap-3">{current.choices.map(choice => <button key={choice} onClick={() => { setAnswer(choice); if (step === 2 && choice === "GET") setStep(3); }} className={cn("flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-sm font-semibold transition", answer === choice ? "border-[#6ca595] bg-[#eff6f0] text-[#4d806f]" : "border-[#eee4d8] bg-[#fffdf9] text-[#5b6964] hover:border-[#c9ddd3] hover:bg-[#f9fcf9]")}>{choice}<ChevronRight className="h-4 w-4 text-[#b4a79b]" /></button>)}</div>}<div className="mt-8 flex flex-wrap gap-3"><Button onClick={() => setStep(Math.min(step + 1, steps.length - 1))} className="rounded-full bg-[#315d58] px-5 hover:bg-[#254c48]">{step === steps.length - 1 ? "Complete reflection" : "Continue"}<ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => setExplanationStyle(explanationStyles[(explanationStyles.indexOf(explanationStyle) + 1) % explanationStyles.length])} className="rounded-full border border-[#e7ddd2] px-5 py-2 text-sm font-semibold text-[#76695d] hover:bg-[#faf5ef]">Explain differently · {explanationStyle}</button></div></div></div></div></div>;
+  return <div className="mx-auto max-w-5xl"><button onClick={onBack} className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#7b6d61] transition hover:text-[#315d58]"><ArrowRight className="h-4 w-4 rotate-180" /> Back to Home</button><div className="mission-shell rounded-[30px] border border-[#eadfd3] bg-[#fffaf4] p-5 shadow-[0_18px_45px_rgba(85,67,52,0.06)] md:p-8"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="eyebrow">Today’s mission · REST APIs</p><h1 className="display-title mt-2">Learn by doing.</h1></div><div className="rounded-full bg-[#e8f1ea] px-4 py-2 text-xs font-bold text-[#5d947f]">{step + 1} of {steps.length}</div></div><div className="mt-8 grid grid-cols-3 gap-1.5 md:grid-cols-6">{steps.map((label,index) => <button key={label} onClick={() => moveToStep(index)} className={cn("rounded-xl px-2 py-3 text-center text-[10px] font-bold uppercase tracking-[0.1em] transition md:text-xs", index === step ? "bg-[#315d58] text-white" : index < step ? "bg-[#e2efe7] text-[#57907c]" : "bg-[#f4ede6] text-[#b5a89a]")}>{index < step ? <Check className="mx-auto mb-1 h-3.5 w-3.5" /> : <span className="mb-1 block">0{index + 1}</span>}{label}</button>)}</div><div className="mt-10 grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start"><div className="flex flex-col items-center text-center lg:items-start lg:text-left"><HanaAvatar mood={["concept", "example", "try-it", "feedback", "apply-it", "reflect"][step]} /><span className="mt-4 pill pill-sage">{step === 0 ? "A clear place to start" : step === 5 ? "You’re doing the thinking" : "Hana is with you"}</span><p className="mt-4 max-w-xs text-sm leading-6 text-[#76695d]">No rush. The goal is not to get everything right—it’s to make the next idea a little clearer.</p></div><div className="rounded-[24px] bg-white p-6 shadow-[0_10px_30px_rgba(80,61,43,0.05)] md:p-8"><p className="eyebrow">{steps[step]}</p><h2 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-[#2d3c39]">{current.title}</h2><p className="mt-5 text-[15px] leading-7 text-[#5f6e69]">{current.body}</p><div className="mt-6 rounded-2xl bg-[#eff6f0] p-5 text-sm leading-6 text-[#4e7569]"><Sparkles className="mb-2 h-4 w-4 text-[#6ca595]" />{current.prompt}</div>{current.choices && <div className="mt-6 grid gap-3">{current.choices.map(choice => <button key={choice} onClick={() => { setAnswer(choice); if (step === 2 && choice === "GET") moveToStep(3); }} className={cn("flex items-center justify-between rounded-2xl border px-4 py-3.5 text-left text-sm font-semibold transition", answer === choice ? "border-[#6ca595] bg-[#eff6f0] text-[#4d806f]" : "border-[#eee4d8] bg-[#fffdf9] text-[#5b6964] hover:border-[#c9ddd3] hover:bg-[#f9fcf9]")}>{choice}<ChevronRight className="h-4 w-4 text-[#b4a79b]" /></button>)}</div>}<div className="mt-8 flex flex-wrap gap-3"><Button onClick={() => moveToStep(step + 1)} className="rounded-full bg-[#315d58] px-5 hover:bg-[#254c48]">{step === steps.length - 1 ? "Complete reflection" : "Continue"}<ArrowRight className="ml-2 h-4 w-4" /></Button><button onClick={() => setExplanationStyle(explanationStyles[(explanationStyles.indexOf(explanationStyle) + 1) % explanationStyles.length])} className="rounded-full border border-[#e7ddd2] px-5 py-2 text-sm font-semibold text-[#76695d] hover:bg-[#faf5ef]">Explain differently · {explanationStyle}</button></div></div></div></div></div>;
 }
 
 function ProjectsView({ onChat }: { onChat: () => void }) {
@@ -203,17 +226,45 @@ function ProjectsView({ onChat }: { onChat: () => void }) {
 
 function OpportunitiesView() {
   const [saved, setSaved] = useState<string[]>([]);
-  return <><PageHeader eyebrow="Find your next room to grow" title="Opportunities with a reason." description="A smaller, more considered set of programs and competitions matched to what you’re learning and building." action={<div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aa9d90]" /><input className="h-10 rounded-full border border-[#e7ddd2] bg-white pl-9 pr-4 text-sm outline-none focus:border-[#8db8aa]" placeholder="Search opportunities" /></div>} /><div className="mb-6 flex flex-wrap gap-2"><span className="filter-chip filter-chip-active">Recommended</span><span className="filter-chip">Hackathons</span><span className="filter-chip">Internships</span><span className="filter-chip">Open source</span><span className="filter-chip">Online only</span></div><div className="grid gap-5">{opportunities.map(item => <section key={item.title} className="surface-card rounded-[26px] p-6 md:p-7"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div className="flex items-start gap-4"><div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", item.tone === "coral" ? "bg-[#fff0e9] text-[#d9856e]" : item.tone === "mint" ? "bg-[#e7f1ea] text-[#60967e]" : "bg-[#eee8f5] text-[#9887bf]")}><Trophy className="h-5 w-5" /></div><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a09283]">{item.type} · {item.org}</p><h2 className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">{item.title}</h2><div className="mt-3 flex flex-wrap gap-2">{item.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}</div></div></div><div className="flex items-center gap-3 md:flex-col md:items-end"><span className="rounded-full bg-[#e8f1ea] px-3 py-1.5 text-xs font-bold text-[#5d947f]">{item.match}</span><span className="flex items-center gap-1.5 text-xs font-semibold text-[#c77d68]"><Bell className="h-3.5 w-3.5" /> Closes in {item.deadline}</span></div></div><div className="mt-6 grid gap-4 rounded-2xl bg-[#fcf8f2] p-4 md:grid-cols-[1fr_auto] md:items-center"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#a58d7c]">Why Hana surfaced this</p><p className="mt-2 text-sm leading-6 text-[#76695d]">It fits your current level, supports online participation, and gives you a place to use the Python and Git skills you’re actively practicing.</p></div><div className="flex gap-2"><button onClick={() => setSaved(current => current.includes(item.title) ? current.filter(x => x !== item.title) : [...current, item.title])} className={cn("rounded-full border px-4 py-2 text-sm font-semibold transition", saved.includes(item.title) ? "border-[#a6c9ba] bg-[#e8f1ea] text-[#5d947f]" : "border-[#e7ddd2] text-[#76695d] hover:bg-white")}>{saved.includes(item.title) ? <><Check className="mr-1 inline h-4 w-4" /> Saved</> : <><Star className="mr-1 inline h-4 w-4" /> Save</>}</button><button className="rounded-full bg-[#315d58] px-4 py-2 text-sm font-semibold text-white hover:bg-[#254c48]">View details <ArrowRight className="ml-1 inline h-4 w-4" /></button></div></div></section>)}</div><section className="mt-5 surface-card rounded-[26px] p-6"><div className="flex items-center justify-between"><div><p className="eyebrow">Your application tracker</p><h2 className="mt-2 font-display text-xl font-semibold text-[#2d3c39]">Turn saved ideas into movement.</h2></div><button className="text-sm font-bold text-[#5d947f]">Open tracker <ArrowRight className="ml-1 inline h-4 w-4" /></button></div><div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4">{[["Saved",saved.length || 2],["Planning",1],["Applied",0],["Outcome",0]].map(([label,value]) => <div key={label as string} className="rounded-2xl bg-[#fcf8f2] p-4"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a09283]">{label as string}</p><p className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">{value as number}</p></div>)}</div></section></>;
+  const saveOpportunity = trpc.learner.saveOpportunity.useMutation();
+  const { data: opportunityRecords, isLoading: opportunitiesLoading } = trpc.opportunities.list.useQuery();
+  const liveOpportunities: OpportunityCard[] = (opportunityRecords ?? []).map((item, index) => ({
+    id: item.id,
+    title: item.title,
+    org: item.organization,
+    type: item.category,
+    match: index === 0 ? "Strong fit" : index === 1 ? "Good fit" : "Explore",
+    deadline: item.deadline ? `${Math.max(0, Math.ceil((new Date(item.deadline).getTime() - Date.now()) / 86400000))} days` : "Open",
+    tags: [item.location || "Online", item.category],
+    tone: (index % 3 === 0 ? "coral" : index % 3 === 1 ? "mint" : "lilac") as OpportunityCard["tone"],
+    officialUrl: item.officialUrl,
+  }));
+  const opportunityItems = liveOpportunities.length > 0 ? liveOpportunities : demoOpportunities;
+  return <><PageHeader eyebrow="Find your next room to grow" title="Opportunities with a reason." description="A smaller, more considered set of programs and competitions matched to what you’re learning and building." action={<div className="relative"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#aa9d90]" /><input className="h-10 rounded-full border border-[#e7ddd2] bg-white pl-9 pr-4 text-sm outline-none focus:border-[#8db8aa]" placeholder="Search opportunities" /></div>} /><div className="mb-6 flex flex-wrap gap-2"><span className="filter-chip filter-chip-active">Recommended</span><span className="filter-chip">Hackathons</span><span className="filter-chip">Internships</span><span className="filter-chip">Open source</span><span className="filter-chip">Online only</span></div><div className="grid gap-5">{opportunityItems.map(item => <section key={item.title} className="surface-card rounded-[26px] p-6 md:p-7"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div className="flex items-start gap-4"><div className={cn("flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl", item.tone === "coral" ? "bg-[#fff0e9] text-[#d9856e]" : item.tone === "mint" ? "bg-[#e7f1ea] text-[#60967e]" : "bg-[#eee8f5] text-[#9887bf]")}><Trophy className="h-5 w-5" /></div><div><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a09283]">{item.type} · {item.org}</p><h2 className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">{item.title}</h2><div className="mt-3 flex flex-wrap gap-2">{item.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}</div></div></div><div className="flex items-center gap-3 md:flex-col md:items-end"><span className="rounded-full bg-[#e8f1ea] px-3 py-1.5 text-xs font-bold text-[#5d947f]">{item.match}</span><span className="flex items-center gap-1.5 text-xs font-semibold text-[#c77d68]"><Bell className="h-3.5 w-3.5" /> Closes in {item.deadline}</span></div></div><div className="mt-6 grid gap-4 rounded-2xl bg-[#fcf8f2] p-4 md:grid-cols-[1fr_auto] md:items-center"><div><p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#a58d7c]">Why Hana surfaced this</p><p className="mt-2 text-sm leading-6 text-[#76695d]">It fits your current level, supports online participation, and gives you a place to use the Python and Git skills you’re actively practicing.</p></div><div className="flex flex-wrap gap-2"><button onClick={() => { const nextSaved = !saved.includes(item.title); setSaved(current => nextSaved ? [...current, item.title] : current.filter(x => x !== item.title)); if (item.id && nextSaved) saveOpportunity.mutate({ opportunityId: item.id, status: "saved" }); }} className={cn("rounded-full border px-4 py-2 text-sm font-semibold transition", saved.includes(item.title) ? "border-[#a6c9ba] bg-[#e8f1ea] text-[#5d947f]" : "border-[#e7ddd2] text-[#76695d] hover:bg-white")} disabled={saveOpportunity.isPending}>{saved.includes(item.title) ? <><Check className="mr-1 inline h-4 w-4" /> Saved</> : <><Star className="mr-1 inline h-4 w-4" /> Save</>}</button>{"officialUrl" in item && item.officialUrl ? <a href={item.officialUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#315d58] px-4 py-2 text-sm font-semibold text-white hover:bg-[#254c48]">Official source <ArrowRight className="ml-1 inline h-4 w-4" /></a> : <button className="rounded-full bg-[#315d58] px-4 py-2 text-sm font-semibold text-white hover:bg-[#254c48]">View details <ArrowRight className="ml-1 inline h-4 w-4" /></button>}</div></div></section>)}</div>{opportunitiesLoading && <p className="mt-4 text-xs font-semibold text-[#a09283]">Checking the latest saved opportunity sources…</p>}<section className="mt-5 surface-card rounded-[26px] p-6"><div className="flex items-center justify-between"><div><p className="eyebrow">Your application tracker</p><h2 className="mt-2 font-display text-xl font-semibold text-[#2d3c39]">Turn saved ideas into movement.</h2></div><button className="text-sm font-bold text-[#5d947f]">Open tracker <ArrowRight className="ml-1 inline h-4 w-4" /></button></div><div className="mt-7 grid grid-cols-2 gap-3 md:grid-cols-4">{[["Saved",saved.length || 2],["Planning",1],["Applied",0],["Outcome",0]].map(([label,value]) => <div key={label as string} className="rounded-2xl bg-[#fcf8f2] p-4"><p className="text-xs font-bold uppercase tracking-[0.12em] text-[#a09283]">{label as string}</p><p className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">{value as number}</p></div>)}</div></section></>;
 }
 
 function ChatView() {
   const [input, setInput] = useState("");
   const [memory, setMemory] = useState(true);
   const [showMemory, setShowMemory] = useState(false);
+  const [conversationId, setConversationId] = useState<number | undefined>();
   const [savedMemory, setSavedMemory] = useState(["You are working toward software engineering.", "Recursion felt difficult last week.", "You prefer examples before theory.", "Your weather app is the active project."]);
   const [messages, setMessages] = useState<HanaMessage[]>([{ role: "hana", text: "I’m here. What would feel most useful right now? We can make a concept simpler, untangle a project, plan your week, or talk through what’s feeling heavy.", actions: ["Explain REST APIs simply", "Help with my weather app", "I’m overwhelmed"] }]);
-  const send = (text: string) => { const clean = text.trim(); if (!clean) return; setMessages(prev => [...prev, { role: "user", text: clean }, { role: "hana", text: clean.toLowerCase().includes("overwhelmed") ? "Let’s make the day smaller. You don’t need to solve your whole career tonight. I’d suggest a 10-minute API exercise, then we can stop or choose the next step together." : "I’m connecting that to your current roadmap and weather app. A good next move is to work with one concrete example, then save what you learn as evidence.", actions: ["Start a 10-minute practice", "Show me an example", "Save this for later"] }]); setInput(""); };
-  return <><PageHeader eyebrow="Your thinking partner" title="Ask Hana anything." description="Hana keeps the thread between what you’re learning, what you’re building, and what you want next." action={<div className="pill pill-sage"><Network className="h-3.5 w-3.5" /> Context on · roadmap + projects</div>} /><div className="grid gap-5 xl:grid-cols-[1fr_300px]"><section className="surface-card flex min-h-[610px] flex-col rounded-[26px] p-5 md:p-7"><div className="flex items-center gap-3 border-b border-[#eee4d8] pb-5"><HanaAvatar small mood="listening" /><div><p className="font-semibold text-[#2d3c39]">Hana</p><p className="text-xs text-[#8e8175]">Your CS career companion · remembers only what you allow</p></div><span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-[#6ca595]"><span className="h-2 w-2 rounded-full bg-[#6ca595]" /> Ready</span></div><div className="flex-1 space-y-5 overflow-auto py-6">{messages.map((message,index) => <div key={index} className={cn("flex gap-3", message.role === "user" && "justify-end")}><div className={cn("max-w-[85%] rounded-[20px] px-4 py-3 text-sm leading-6", message.role === "user" ? "bg-[#315d58] text-white" : "bg-[#f6f0e9] text-[#5e6d67]")}>{message.text}{message.actions && <div className="mt-4 flex flex-wrap gap-2">{message.actions.map(action => <button key={action} onClick={() => send(action)} className="rounded-full border border-[#d7cfc4] bg-white/70 px-3 py-1.5 text-xs font-semibold text-[#55766b] hover:bg-white">{action}</button>)}</div>}</div></div>)}</div><div className="rounded-[20px] border border-[#e8ded3] bg-[#fffdf9] p-2"><Textarea value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(input); } }} placeholder="Tell Hana what’s on your mind…" className="min-h-[62px] resize-none border-0 bg-transparent shadow-none focus-visible:ring-0" /><div className="flex items-center justify-between px-2 pb-1"><span className="text-xs text-[#a29589]">Enter to send · Shift + Enter for a new line</span><button onClick={() => send(input)} className="rounded-full bg-[#315d58] p-2.5 text-white hover:bg-[#254c48]" aria-label="Send message"><Send className="h-4 w-4" /></button></div></div></section><aside className="space-y-5"><section className="surface-card rounded-[24px] p-5"><div className="flex items-center justify-between"><div><p className="eyebrow">Memory controls</p><h2 className="mt-2 font-display text-xl font-semibold text-[#2d3c39]">You’re in control.</h2></div><Settings className="h-5 w-5 text-[#9f9185]" /></div><p className="mt-3 text-sm leading-6 text-[#76695d]">Hana can use helpful context, but you decide what stays remembered.</p><div className="mt-5 flex items-center justify-between rounded-2xl bg-[#f8f3ed] p-3"><span className="text-sm font-semibold text-[#5f6d67]">Use saved memory</span><button onClick={() => setMemory(!memory)} className={cn("relative h-6 w-11 rounded-full transition", memory ? "bg-[#6ca595]" : "bg-[#cfc5b9]")} aria-pressed={memory}><span className={cn("absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition", memory ? "right-1" : "left-1")} /></button></div><button onClick={() => setShowMemory(true)} className="mt-4 w-full rounded-full border border-[#e7ddd2] px-4 py-2.5 text-sm font-semibold text-[#76695d] hover:bg-[#fffdf9]">Inspect saved memory <ChevronRight className="ml-1 inline h-4 w-4" /></button><button onClick={() => setSavedMemory([])} className="mt-2 w-full rounded-full px-4 py-2.5 text-sm font-semibold text-[#c97867] hover:bg-[#fff3ed]">Delete all memory</button></section><section className="surface-card rounded-[24px] p-5"><p className="eyebrow">Hana knows</p><div className="mt-4 space-y-3">{[["Your goal","Software engineer"],["Current focus","REST APIs"],["Active project","Weather app"],["Learning style","Examples first"]].map(([label,value]) => <div key={label} className="flex items-center justify-between gap-4 text-sm"><span className="text-[#9a8d80]">{label}</span><span className="text-right font-semibold text-[#566760]">{value}</span></div>)}</div></section></aside></div>{showMemory && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#2d3c39]/30 p-4 backdrop-blur-sm"><div className="surface-card w-full max-w-md rounded-[26px] p-6"><div className="flex items-center justify-between"><div><p className="eyebrow">Saved memory</p><h2 className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">What Hana can remember.</h2></div><button onClick={() => setShowMemory(false)} className="icon-button"><X className="h-4 w-4" /></button></div>{savedMemory.length ? <div className="mt-5 space-y-2">{savedMemory.map(item => <div key={item} className="rounded-2xl bg-[#fcf8f2] p-3 text-sm text-[#63716b]">{item}</div>)}</div> : <div className="mt-5 rounded-2xl bg-[#eef6f0] p-4 text-sm leading-6 text-[#55766b]">Hana has no saved memories. You can keep chatting without a stored context.</div>}<button onClick={() => setShowMemory(false)} className="mt-6 w-full rounded-full bg-[#315d58] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#254c48]">Done</button></div></div>}</>;
+  const chatMutation = trpc.ai.chat.useMutation();
+  const send = async (text: string) => {
+    const clean = text.trim();
+    if (!clean || chatMutation.isPending) return;
+    setMessages(prev => [...prev, { role: "user", text: clean }]);
+    setInput("");
+    try {
+      const result = await chatMutation.mutateAsync({ message: clean, conversationId, memoryEnabled: memory });
+      if (result.conversationId) setConversationId(result.conversationId);
+      setMessages(prev => [...prev, { role: "hana", text: result.answer, actions: ["Make that simpler", "Give me an example", "Choose a smaller next step"] }]);
+    } catch {
+      setMessages(prev => [...prev, { role: "hana", text: "I couldn’t reach Hana just now. Your message is still here—please try again in a moment." }]);
+    }
+  };
+  return <><PageHeader eyebrow="Your thinking partner" title="Ask Hana anything." description="Hana keeps the thread between what you’re learning, what you’re building, and what you want next." action={<div className="pill pill-sage"><Network className="h-3.5 w-3.5" /> Context on · roadmap + projects</div>} /><div className="grid gap-5 xl:grid-cols-[1fr_300px]"><section className="surface-card flex min-h-[610px] flex-col rounded-[26px] p-5 md:p-7"><div className="flex items-center gap-3 border-b border-[#eee4d8] pb-5"><HanaAvatar small mood="listening" /><div><p className="font-semibold text-[#2d3c39]">Hana</p><p className="text-xs text-[#8e8175]">Your CS career companion · remembers only what you allow</p></div><span className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-[#6ca595]"><span className={cn("h-2 w-2 rounded-full", chatMutation.isPending ? "animate-pulse bg-[#d99172]" : "bg-[#6ca595]")} /> {chatMutation.isPending ? "Thinking" : "Ready"}</span></div><div className="flex-1 space-y-5 overflow-auto py-6">{messages.map((message,index) => <div key={index} className={cn("flex gap-3", message.role === "user" && "justify-end")}><div className={cn("max-w-[85%] rounded-[20px] px-4 py-3 text-sm leading-6", message.role === "user" ? "bg-[#315d58] text-white" : "bg-[#f6f0e9] text-[#5e6d67]")}>{message.text}{message.actions && <div className="mt-4 flex flex-wrap gap-2">{message.actions.map(action => <button key={action} onClick={() => send(action)} className="rounded-full border border-[#d7cfc4] bg-white/70 px-3 py-1.5 text-xs font-semibold text-[#55766b] hover:bg-white">{action}</button>)}</div>}</div></div>)}</div><div className="rounded-[20px] border border-[#e8ded3] bg-[#fffdf9] p-2"><Textarea value={input} onChange={event => setInput(event.target.value)} onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(input); } }} placeholder="Tell Hana what’s on your mind…" className="min-h-[62px] resize-none border-0 bg-transparent shadow-none focus-visible:ring-0" /><div className="flex items-center justify-between px-2 pb-1"><span className="text-xs text-[#a29589]">Enter to send · Shift + Enter for a new line</span><button onClick={() => send(input)} className="rounded-full bg-[#315d58] p-2.5 text-white hover:bg-[#254c48]" aria-label="Send message"><Send className="h-4 w-4" /></button></div></div></section><aside className="space-y-5"><section className="surface-card rounded-[24px] p-5"><div className="flex items-center justify-between"><div><p className="eyebrow">Memory controls</p><h2 className="mt-2 font-display text-xl font-semibold text-[#2d3c39]">You’re in control.</h2></div><Settings className="h-5 w-5 text-[#9f9185]" /></div><p className="mt-3 text-sm leading-6 text-[#76695d]">Hana can use helpful context, but you decide what stays remembered.</p><div className="mt-5 flex items-center justify-between rounded-2xl bg-[#f8f3ed] p-3"><span className="text-sm font-semibold text-[#5f6d67]">Use saved memory</span><button onClick={() => setMemory(!memory)} className={cn("relative h-6 w-11 rounded-full transition", memory ? "bg-[#6ca595]" : "bg-[#cfc5b9]")} aria-pressed={memory}><span className={cn("absolute top-1 h-4 w-4 rounded-full bg-white shadow-sm transition", memory ? "right-1" : "left-1")} /></button></div><button onClick={() => setShowMemory(true)} className="mt-4 w-full rounded-full border border-[#e7ddd2] px-4 py-2.5 text-sm font-semibold text-[#76695d] hover:bg-[#fffdf9]">Inspect saved memory <ChevronRight className="ml-1 inline h-4 w-4" /></button><button onClick={() => setSavedMemory([])} className="mt-2 w-full rounded-full px-4 py-2.5 text-sm font-semibold text-[#c97867] hover:bg-[#fff3ed]">Delete all memory</button></section><section className="surface-card rounded-[24px] p-5"><p className="eyebrow">Hana knows</p><div className="mt-4 space-y-3">{[["Your goal","Software engineer"],["Current focus","REST APIs"],["Active project","Weather app"],["Learning style","Examples first"]].map(([label,value]) => <div key={label} className="flex items-center justify-between gap-4 text-sm"><span className="text-[#9a8d80]">{label}</span><span className="text-right font-semibold text-[#566760]">{value}</span></div>)}</div></section></aside></div>{showMemory && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-[#2d3c39]/30 p-4 backdrop-blur-sm"><div className="surface-card w-full max-w-md rounded-[26px] p-6"><div className="flex items-center justify-between"><div><p className="eyebrow">Saved memory</p><h2 className="mt-2 font-display text-2xl font-semibold text-[#2d3c39]">What Hana can remember.</h2></div><button onClick={() => setShowMemory(false)} className="icon-button"><X className="h-4 w-4" /></button></div>{savedMemory.length ? <div className="mt-5 space-y-2">{savedMemory.map(item => <div key={item} className="rounded-2xl bg-[#fcf8f2] p-3 text-sm text-[#63716b]">{item}</div>)}</div> : <div className="mt-5 rounded-2xl bg-[#eef6f0] p-4 text-sm leading-6 text-[#55766b]">Hana has no saved memories. You can keep chatting without a stored context.</div>}<button onClick={() => setShowMemory(false)} className="mt-6 w-full rounded-full bg-[#315d58] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#254c48]">Done</button></div></div>}</>;
 }
 
 function ProfileView({ onSettings }: { onSettings: () => void }) {
@@ -248,14 +299,125 @@ function OnboardingView({ onComplete }: { onComplete: () => void }) {
   return <div className="mx-auto max-w-4xl"><button onClick={onComplete} className="mb-8 inline-flex items-center gap-2 text-sm font-semibold text-[#7b6d61] hover:text-[#315d58]"><ArrowRight className="h-4 w-4 rotate-180" /> Back to Hana</button><div className="surface-card overflow-hidden rounded-[30px] p-6 md:p-10"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><HanaAvatar small mood="excited" /><div><p className="font-display text-xl font-semibold text-[#315d58]">Let’s make your starting point.</p><p className="text-xs text-[#9a8d80]">Hana · a few thoughtful questions</p></div></div><span className="rounded-full bg-[#e8f1ea] px-3 py-1.5 text-xs font-bold text-[#5d947f]">{step + 1} / {prompts.length}</span></div><div className="mt-8 h-1.5 overflow-hidden rounded-full bg-[#f0e9e1]"><div className="h-full rounded-full bg-[#6ca595] transition-all" style={{ width: `${((step + 1) / prompts.length) * 100}%` }} /></div><div className="mx-auto mt-12 max-w-2xl text-center"><p className="eyebrow">{current.eyebrow}</p><h1 className="display-title mt-3">{current.title}</h1><p className="body-copy mx-auto mt-4 max-w-lg">{current.copy}</p><div className="mt-9 grid gap-3 text-left sm:grid-cols-2">{current.options.map(option => <button key={option} onClick={() => setSelected(option)} className={cn("rounded-2xl border px-5 py-4 text-sm font-semibold transition", selected === option ? "border-[#8db8aa] bg-[#eef6f0] text-[#4f806f]" : "border-[#e7ddd2] bg-[#fffdf9] text-[#65736d] hover:border-[#cfe2d8] hover:bg-[#fcf8f2]")}>{option}{selected === option && <Check className="float-right h-4 w-4" />}</button>)}</div><div className="mt-9 flex justify-center"><Button onClick={() => step < prompts.length - 1 ? setStep(step + 1) : finishOnboarding()} className="rounded-full bg-[#315d58] px-6 hover:bg-[#254c48]">{step < prompts.length - 1 ? "Continue" : "Create my roadmap"}<ArrowRight className="ml-2 h-4 w-4" /></Button></div></div></div></div>;
 }
 
+function GameEntryView({ onEnter }: { onEnter: (view: View) => void }) {
+  const { theme, toggleTheme } = useTheme();
+  const [selected, setSelected] = useState("start");
+  const [transitioning, setTransitioning] = useState(false);
+  const previewParams = new URLSearchParams(window.location.search);
+  const [showMenu, setShowMenu] = useState(() => previewParams.get("menu") === "1");
+  const isDark = previewParams.get("theme") === "dark" || theme === "dark";
+  const openMenu = () => {
+    setTransitioning(true);
+    window.setTimeout(() => {
+      setShowMenu(true);
+      setTransitioning(false);
+    }, 420);
+  };
+  const selectMenu = (view: View | "options") => {
+    setSelected(view);
+    if (view === "options") {
+      toggleTheme?.();
+      return;
+    }
+    onEnter(view);
+  };
+
+  return (
+    <div className={cn("game-entry game-entry-approved", isDark ? "game-entry-dark" : "game-entry-bright", showMenu && "game-entry-menu", transitioning && "game-entry-transitioning")}>
+      <div className="game-sky-glow" />
+      <div className="game-constellation constellation-one" />
+      <div className="game-constellation constellation-two" />
+      <div className="game-mist mist-one" />
+      <div className="game-mist mist-two" />
+      <div className="game-particles" aria-hidden="true">
+        {Array.from({ length: 16 }, (_, index) => <span key={index} className={cn("game-particle", `game-particle-${index + 1}`)}>✦</span>)}
+      </div>
+      <div className="game-world-art" aria-hidden="true">
+        <div className="game-floating-island island-one" />
+        <div className="game-floating-island island-two" />
+        <div className="game-academy" />
+        <div className="game-tree"><span /><span /><span /></div>
+        <div className="game-path path-one" />
+        <div className="game-path path-two" />
+      </div>
+      <div className="game-entry-vignette" />
+
+      <div className="game-entry-copy">
+        <div className="game-brand-lockup"><span className="game-brand-star">✦</span><span>HANA</span><span className="game-brand-star">✦</span></div>
+        <p className="game-kicker">A personal computer science adventure</p>
+      </div>
+
+      <div className="game-companion-stage">
+        <div className="game-portal" aria-hidden="true"><span /><span /><span /></div>
+        <div className="game-companion-glow" aria-hidden="true" />
+        <img className="game-companion" src="/manus-storage/hana-new-companion-concept_628f65ae.png" alt="Hana, your fantasy learning companion" />
+        <p className="game-companion-caption">A world that meets you where you are.</p>
+      </div>
+
+      {!showMenu ? (
+        <div className="game-title-block">
+          <p className="game-title-eyebrow">Welcome, adventurer</p>
+          <h1>HANA</h1>
+          <p className="game-title-subtitle">YOUR CS ADVENTURE</p>
+          <p className="game-title-description">Learn one small thing. Build something real. Find your next step.</p>
+          <div className="game-entry-actions">
+            <button type="button" className={cn("game-action-button game-action-primary", selected === "start" && "game-action-selected")} onClick={openMenu} onFocus={() => setSelected("start")} onMouseEnter={() => setSelected("start")}>
+              <span>✦</span> START JOURNEY <span>✦</span>
+            </button>
+            <button type="button" className={cn("game-action-secondary", selected === "options" && "game-action-secondary-selected")} onClick={() => selectMenu("options")} onFocus={() => setSelected("options")} onMouseEnter={() => setSelected("options")}>
+              <span className="game-action-orb" /> OPTIONS <span className="game-theme-note">{isDark ? "Dark realm" : "Bright realm"}</span>
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div className="game-menu-panel" aria-label="Hana main menu">
+          <p className="game-title-eyebrow">Your next chapter</p>
+          <h1>HANA</h1>
+          <p className="game-title-subtitle">YOUR CS ADVENTURE</p>
+          <div className="game-menu-list" role="menu">
+            {[
+              ["roadmap", "✦", "ROADMAP", "Your journey through Computer Science"],
+              ["projects", "⚒", "PROJECTS", "Build something you can be proud of"],
+              ["opportunities", "✧", "OPPORTUNITIES", "Find a quest worth pursuing"],
+              ["chat", "◈", "CHAT WITH HANA", "A calm place to ask anything"],
+              ["options", "⚙", "OPTIONS", `Switch to the ${isDark ? "bright" : "dark"} realm`],
+            ].map(([id, icon, label, description]) => (
+              <button key={id} type="button" role="menuitem" className={cn("game-menu-item", selected === id && "game-menu-item-selected")} onClick={() => selectMenu(id as View | "options")} onFocus={() => setSelected(id)} onMouseEnter={() => setSelected(id)}>
+                <span className="game-menu-icon">{icon}</span>
+                <span className="game-menu-label">{label}</span>
+                <span className="game-menu-description">{description}</span>
+                <span className="game-menu-arrow">→</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" className="game-back-link" onClick={() => setShowMenu(false)}>← Return to title</button>
+        </div>
+      )}
+
+      <div className="game-entry-footer"><span>HANA // YOUR CS ADVENTURE</span><span>{isDark ? "Night mode" : "Daybreak mode"}</span></div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const [mobileNav, setMobileNav] = useState(false);
-  const path = window.location.pathname.replace("/", "") as View;
-  const [activeView, setActiveView] = useState<View>(navItems.some(item => item.id === path) ? path : "home");
+  const [entryComplete, setEntryComplete] = useState(() => window.sessionStorage.getItem("hana-entry-complete") === "true");
+  const routeParam = new URLSearchParams(window.location.search).get("view");
+  const path = (routeParam ?? window.location.pathname.replace("/", "")) as View;
+  const knownViews: View[] = ["home", "roadmap", "mission", "projects", "opportunities", "chat", "profile", "settings", "onboarding"];
+  const [activeView, setActiveView] = useState<View>(knownViews.includes(path) ? path : "home");
   const navigate = (view: View) => { setActiveView(view); setMobileNav(false); setLocation(view === "home" ? "/" : `/${view}`); window.scrollTo({ top: 0, behavior: "smooth" }); };
   const displayName = user?.name?.split(" ")[0] || "Alex";
+  const enterFromMenu = (view: View) => {
+    setEntryComplete(true);
+    window.sessionStorage.setItem("hana-entry-complete", "true");
+    navigate(view);
+  };
+  if (!entryComplete && activeView === "home") {
+    return <GameEntryView onEnter={enterFromMenu} />;
+  }
   const renderView = () => { switch (activeView) { case "roadmap": return <RoadmapView onMission={() => navigate("mission")} />; case "mission": return <MissionView onBack={() => navigate("home")} />; case "projects": return <ProjectsView onChat={() => navigate("chat")} />; case "opportunities": return <OpportunitiesView />; case "chat": return <ChatView />; case "profile": return <ProfileView onSettings={() => navigate("settings")} />; case "settings": return <SettingsView />; case "onboarding": return <OnboardingView onComplete={() => navigate("home")} />; default: return <HomeView onNavigate={navigate} onMission={() => navigate("mission")} />; } };
   return <div className="min-h-screen bg-[#f6f1ea] text-[#2d3c39]"><div className="app-shell"><aside className={cn("app-sidebar", mobileNav ? "app-sidebar-open" : "")}><div className="flex items-center justify-between px-5 py-6"><button onClick={() => navigate("home")} className="flex items-center gap-3 text-left"><span className="brand-mark"><Sparkles className="h-4 w-4" /></span><span><span className="block font-display text-xl font-semibold tracking-[-0.05em] text-[#315d58]">hana</span><span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-[#a09283]">career companion</span></span></button><button onClick={() => setMobileNav(false)} className="icon-button md:hidden" aria-label="Close menu"><X className="h-4 w-4" /></button></div><div className="px-3 py-3"><p className="sidebar-label">Your workspace</p><nav className="mt-3 space-y-1">{navItems.map(item => <button key={item.id} onClick={() => navigate(item.id)} className={cn("sidebar-item", activeView === item.id && "sidebar-item-active")}><item.icon className="h-[18px] w-[18px]" />{item.label}{item.id === "chat" && <span className="ml-auto h-2 w-2 rounded-full bg-[#e9917d]" />}</button>)}</nav></div><div className="mt-5 px-3"><p className="sidebar-label">Your progress</p><div className="mt-3 rounded-2xl bg-[#eef5ef] p-4"><div className="flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.1em] text-[#6d9487]">Level 7</span><span className="text-xs font-semibold text-[#7a968b]">78%</span></div><ProgressBar value={78} /><p className="mt-3 text-xs leading-5 text-[#6c847a]">You’re building a steady foundation.</p></div></div><div className="mt-auto px-3 pb-4"><button onClick={() => navigate("profile")} className={cn("sidebar-item", activeView === "profile" && "sidebar-item-active")}><UserRound className="h-[18px] w-[18px]" />Career profile</button><button onClick={() => navigate("settings")} className={cn("sidebar-item", activeView === "settings" && "sidebar-item-active")}><Settings className="h-[18px] w-[18px]" />Settings</button><div className="mt-4 flex items-center gap-3 border-t border-[#e8ded3] px-3 pt-4"><div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ffd4c5] text-sm font-bold text-[#87564e]">{displayName.slice(0,1)}</div><div className="min-w-0"><p className="truncate text-sm font-semibold text-[#52635c]">{user?.name || "Alex Morgan"}</p><p className="text-xs text-[#a09283]">Learning thoughtfully</p></div></div></div></aside><div className="app-main"><header className="app-header"><div className="flex items-center gap-3"><button onClick={() => setMobileNav(true)} className="icon-button md:hidden" aria-label="Open menu"><Menu className="h-4 w-4" /></button><div className="hidden items-center gap-2 text-sm text-[#9b8e81] md:flex"><span>Tuesday</span><span className="h-1 w-1 rounded-full bg-[#cbbcaf]" /><span>October 15, 2024</span></div></div><div className="flex items-center gap-2"><button className="header-link hidden sm:inline-flex" onClick={() => navigate("chat")}><CircleHelp className="h-4 w-4" /> Need help?</button>{user ? <button className="avatar-button">{displayName.slice(0,1)}</button> : <button onClick={() => startLogin()} className="rounded-full bg-[#315d58] px-4 py-2 text-xs font-bold text-white hover:bg-[#254c48]">Sign in</button>}</div></header><main className="app-content">{renderView()}</main><footer className="app-footer"><span>Hana is here for your next step.</span><span className="hidden sm:inline">Built around learning, evidence, and care.</span></footer></div></div></div>;
 }
