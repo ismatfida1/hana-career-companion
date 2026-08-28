@@ -38,6 +38,7 @@ it("protects every learner-owned collection behind authentication", async () => 
   await expect(caller.learner.updateMission({ missionId: 1, progress: 10, currentStep: "Concept", state: "in-progress" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   await expect(caller.learner.saveOpportunity({ opportunityId: 1, status: "saved" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   await expect(caller.learner.updateSettings({ memoryEnabled: false })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
+  await expect(caller.ai.compute({ query: "25% of 80000" })).rejects.toMatchObject({ code: "UNAUTHORIZED" });
 });
 
 it("protects roadmap, conversation, achievement, settings, and portfolio records", async () => {

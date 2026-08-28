@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { invokeLLM } from "./_core/llm";
+import { queryWolframAlpha } from "./_core/wolfram";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, updateLearnerSettings, updateMissionProgress, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
 import { z } from "zod";
@@ -25,6 +26,9 @@ export const appRouter = router({
   }),
 
   ai: router({
+    compute: protectedProcedure
+      .input(z.object({ query: z.string().trim().min(1).max(500) }))
+      .query(({ input }) => queryWolframAlpha(input.query)),
     chat: protectedProcedure
       .input(z.object({
         message: z.string().trim().min(1).max(4000),
@@ -45,16 +49,54 @@ export const appRouter = router({
           `Learning missions: ${JSON.stringify(missions.slice(-6))}`,
           input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context.",
         ].join("\\n");
+        const wolframTool = {
+          type: "function" as const,
+          function: {
+            name: "wolfram_alpha",
+            description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation. Do not use it for ordinary conversation, career coaching, or explanations that do not require computation.",
+            parameters: {
+              type: "object",
+              properties: { query: { type: "string", description: "A concise natural-language computational query." } },
+              required: ["query"],
+              additionalProperties: false,
+            },
+          },
+        };
+        const systemPrompt = `You are Hana, a warm and practical career companion for a learner. Give one clear next step, explain concepts in plain language, avoid arbitrary scores, and never claim to have done work the learner has not confirmed. Respect privacy controls. You may call wolfram_alpha only when the learner asks for a calculation, mathematics, unit conversion, statistics, or computational knowledge. Do not call it for every question. If it is unavailable, explain the limitation honestly and continue helpfully.\\n\\n${context}`;
         const response = await invokeLLM({
           model: "gpt-5-mini",
           maxTokens: 900,
           reasoning: { effort: "low" },
+          tools: [wolframTool],
+          toolChoice: "auto",
           messages: [
-            { role: "system", content: `You are Hana, a warm and practical career companion for a learner. Give one clear next step, explain concepts in plain language, avoid arbitrary scores, and never claim to have done work the learner has not confirmed. Respect privacy controls.\\n\\n${context}` },
+            { role: "system", content: systemPrompt },
             { role: "user", content: input.message },
           ],
         });
-        const rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
+        const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
+        let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
+        if (toolCall) {
+          let toolQuery = input.message;
+          try {
+            const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown };
+            if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query;
+          } catch {
+            console.warn("[Wolfram] Hana returned invalid tool arguments");
+          }
+          const computation = await queryWolframAlpha(toolQuery);
+          const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
+          const followUp = await invokeLLM({
+            model: "gpt-5-mini",
+            maxTokens: 900,
+            reasoning: { effort: "low" },
+            messages: [
+              { role: "system", content: `${systemPrompt} Explain the following computation naturally, distinguish the computed result from your explanation, and keep the answer beginner-friendly. End with one clear next step when useful.\\n\\n${computationSummary}` },
+              { role: "user", content: input.message },
+            ],
+          });
+          rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
+        }
         const answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\\n") : rawContent;
         const conversationId = input.conversationId ?? await createChatConversation(ctx.user.id, input.message.slice(0, 120));
         if (conversationId) {

@@ -13,6 +13,7 @@ The Opportunities screen now reads from the existing typed `opportunities.list` 
 | **Manus OAuth** | Yes for accounts | Sign-in, session identity, and learner-owned data access | `VITE_APP_ID`, `OAUTH_SERVER_URL`, `JWT_SECRET`; the OAuth callback is already scaffolded |
 | **MySQL/TiDB-compatible database** | Yes for persistence | Profiles, missions, projects, memories, opportunities, saved applications, roadmap states, chats, achievements, settings, and portfolio drafts | `DATABASE_URL`; run the included Drizzle migrations |
 | **Built-in Forge / LLM service** | Yes for real Hana behavior | Contextual chat, explanation-style switching, roadmap adaptation, project guidance, opportunity matching, and evidence-based draft generation | `BUILT_IN_FORGE_API_URL`, `BUILT_IN_FORGE_API_KEY`; calls must remain server-side through `server/_core/llm.ts` |
+| **Wolfram|Alpha Short Answers API** | Optional computational tool | Calculations, mathematics, unit conversions, statistics, and computational knowledge when Hana’s LLM decides a verified computation is useful | `WOLFRAM_APP_ID`; stored only in the server environment and used by `server/_core/wolfram.ts` |
 | **Object storage** | Recommended; required for user uploads | Audio uploads, portfolio attachments, and future learner evidence files | Use the scaffolded S3/storage proxy configuration; the current project already contains storage helpers but does not yet expose the full upload workflow |
 
 ## APIs needed for planned features
@@ -54,9 +55,16 @@ OAUTH_SERVER_URL
 OWNER_OPEN_ID
 BUILT_IN_FORGE_API_URL
 BUILT_IN_FORGE_API_KEY
+WOLFRAM_APP_ID
 ```
 
 `OWNER_OPEN_ID` is used for owner/admin behavior in the scaffold. It is not a separate third-party API credential.
+
+## Wolfram|Alpha setup and testing
+
+Create an AppID at the [Wolfram|Alpha Developer Portal](https://developer.wolframalpha.com/). In Manus, open the Hana WebDev project’s **Environment Variables / Secrets** settings, add a server environment variable named exactly `WOLFRAM_APP_ID`, paste the AppID as its value, save the project configuration, and restart or redeploy the project so the server receives the new value. Do not add it to `client/.env`, a `VITE_*` variable, React code, browser storage, or a public connector. For local development, place `WOLFRAM_APP_ID=your_app_id` in the server environment used to start `pnpm dev`; never commit that file.
+
+The protected `ai.compute` procedure can verify the backend directly after configuration, while Ask Hana uses the same service automatically only when the conversational model selects the `wolfram_alpha` tool. Test with `What is 25% of 80000?`, `Convert 5 kilometers to miles.`, and `Solve x^2 + 5x + 6 = 0.`. Missing configuration, invalid queries, empty results, rate limits, timeouts, and upstream failures are normalized into safe responses and logged without the AppID.
 
 ## Immediate implementation gaps unrelated to credentials
 
