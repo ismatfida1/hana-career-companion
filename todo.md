@@ -32,8 +32,11 @@
 - [x] Add typed backend procedures and persistent data models for all learner-owned records.
 - [x] Expand Vitest coverage for core domain procedures and privacy boundaries across learner-owned records.
 - [x] Verify responsive, accessibility, loading, empty, and error states.
-- [ ] Capture final checkpoint and deliver the working Hana project.
+- [x] Capture final checkpoint and deliver the working Hana project.
 
 ## Change history
 
 - [x] User refined the product requirements toward an elegant, polished learning and career platform and added exact wording/sequence/privacy constraints.
+
+- [x] Replace the current illustrated Hana avatar with the user-provided Eilik robot reference across all relevant views.
+- [x] Verify the consistent robot identity on desktop and mobile layouts and save a correction checkpoint.

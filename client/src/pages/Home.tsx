@@ -71,14 +71,8 @@ const opportunities = [
 
 function HanaAvatar({ mood = "encouraging", small = false }: { mood?: string; small?: boolean }) {
   return (
-    <div className={cn("hana-avatar relative shrink-0", small ? "h-12 w-12" : "h-20 w-20")} aria-label={`Hana is feeling ${mood}`}>
-      <div className="absolute inset-0 rounded-[34%] bg-gradient-to-br from-[#ffd6c6] via-[#ffc0b0] to-[#f59c88] shadow-[0_12px_30px_rgba(208,112,92,0.18)]" />
-      <div className={cn("absolute rounded-full bg-[#5b2e2b]", small ? "left-[27%] top-[25%] h-3.5 w-3.5" : "left-[25%] top-[22%] h-5 w-5")} />
-      <div className={cn("absolute rounded-full bg-[#5b2e2b]", small ? "right-[27%] top-[25%] h-3.5 w-3.5" : "right-[25%] top-[22%] h-5 w-5")} />
-      <div className={cn("absolute left-1/2 -translate-x-1/2 rounded-full border-b-2 border-[#ad5c55]", small ? "top-[55%] h-2.5 w-5" : "top-[53%] h-4 w-8")} />
-      <div className={cn("absolute rounded-full bg-[#6ca595]", small ? "-bottom-1 left-1/2 h-3 w-8 -translate-x-1/2" : "-bottom-2 left-1/2 h-5 w-14 -translate-x-1/2")} />
-      <div className={cn("absolute -left-1 top-1/2 rounded-full bg-[#f59c88]", small ? "h-4 w-3" : "h-6 w-4")} />
-      <div className={cn("absolute -right-1 top-1/2 rounded-full bg-[#f59c88]", small ? "h-4 w-3" : "h-6 w-4")} />
+    <div className={cn("hana-avatar relative shrink-0 overflow-hidden rounded-[34%] bg-[#fff1dd] shadow-[0_12px_30px_rgba(208,112,92,0.18)]", small ? "h-12 w-12" : "h-20 w-20")} aria-label={`Hana is feeling ${mood}`}>
+      <img src="/manus-storage/hana-eilik-avatar_08717a4a.png" alt="Hana, the Eilik robot learning companion" className="h-full w-full object-cover" />
     </div>
   );
 }
