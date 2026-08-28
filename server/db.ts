@@ -225,6 +225,13 @@ export async function listPortfolioDrafts(userId: number) {
   return db.select().from(portfolioDrafts).where(eq(portfolioDrafts.userId, userId));
 }
 
+export async function createPortfolioDraft(userId: number, projectId: number | undefined, kind: "readme" | "portfolio" | "resume", content: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.insert(portfolioDrafts).values({ userId, projectId, kind, content, status: "draft" });
+  return { userId, projectId, kind, content, status: "draft" as const };
+}
+
 export async function upsertLearnerProfile(userId: number, profile: Omit<InsertLearnerProfile, "userId">) {
   const db = await getDb();
   if (!db) return undefined;

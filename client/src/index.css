@@ -264,3 +264,22 @@ button:active { transform: scale(.98); }
 @media (prefers-reduced-motion: reduce) {
   .hana-avatar img { animation: none !important; }
 }
+
+.simple-home-hero { position: relative; overflow: hidden; background: linear-gradient(135deg, #224e50 0%, #39796e 54%, #7aa989 100%); }
+.simple-home-hero::before { position: absolute; inset: -35% 38% 22% -12%; border: 1px solid rgba(230,255,226,.25); border-radius: 50%; content: ''; transform: rotate(-18deg); pointer-events: none; }
+.simple-home-hero::after { position: absolute; right: -6%; bottom: -34%; height: 260px; width: 260px; border: 1px solid rgba(255,220,174,.28); border-radius: 50%; content: ''; pointer-events: none; }
+.roadmap-fantasy-map { position: relative; }
+.roadmap-fantasy-map::before { position: absolute; left: 27px; top: 28px; bottom: 28px; width: 2px; background: linear-gradient(180deg, rgba(108,165,149,.8), rgba(218,145,114,.45), rgba(194,184,170,.2)); content: ''; pointer-events: none; }
+.roadmap-world-card { position: relative; overflow: hidden; transition: transform .18s cubic-bezier(.23,1,.32,1), box-shadow .18s ease, border-color .18s ease; }
+.roadmap-world-card::after { position: absolute; right: -70px; top: -90px; height: 210px; width: 210px; border: 1px solid rgba(108,165,149,.16); border-radius: 50%; content: ''; pointer-events: none; }
+.roadmap-world-card:hover { transform: translateY(-2px); box-shadow: 0 16px 35px rgba(77,57,40,.08); }
+.roadmap-world-current { border-color: #b9d8ca; background: linear-gradient(135deg, #f7fbf7 0%, #fffdf9 70%); box-shadow: 0 16px 36px rgba(84,132,113,.1); }
+.roadmap-world-next { background: linear-gradient(135deg, #fffaf5, #fffdf9); }
+.roadmap-world-locked { filter: saturate(.72); }
+.roadmap-world-sigil { position: relative; z-index: 1; box-shadow: 0 0 0 5px #fffdf9; }
+.roadmap-world-name { margin: 0 0 5px; color: #b58d74; font-family: 'Unbounded', sans-serif; font-size: .58rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.mobile-bottom-nav { position: fixed; z-index: 45; right: 12px; bottom: 12px; left: 12px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; border: 1px solid rgba(231,221,210,.9); border-radius: 20px; background: rgba(255,253,249,.92); padding: 7px; box-shadow: 0 12px 30px rgba(77,57,40,.15); backdrop-filter: blur(16px); }
+.mobile-bottom-nav-item { display: flex; min-height: 48px; flex-direction: column; align-items: center; justify-content: center; gap: 3px; border-radius: 14px; color: #9b8e81; font-size: .62rem; font-weight: 700; transition: background .16s ease, color .16s ease, transform .16s ease; }
+.mobile-bottom-nav-item-active { background: #e8f1ea; color: #315d58; }
+@media (max-width: 899px) { .app-content { padding-bottom: 104px; } }
+@media (prefers-reduced-motion: reduce) { .roadmap-world-card, .mobile-bottom-nav-item { transition: none; } .roadmap-world-card:hover { transform: none; } }

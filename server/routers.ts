@@ -4,7 +4,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { invokeLLM } from "./_core/llm";
 import { queryWolframAlpha } from "./_core/wolfram";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, updateLearnerSettings, updateMissionProgress, updateProjectCheckpoint, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
+import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, createPortfolioDraft, updateLearnerSettings, updateMissionProgress, updateProjectCheckpoint, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
 import { z } from "zod";
 
 export const appRouter = router({
@@ -129,6 +129,9 @@ export const appRouter = router({
     updateProjectCheckpoint: protectedProcedure
       .input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") }))
       .mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
+    savePortfolioDraft: protectedProcedure
+      .input(z.object({ projectId: z.number().int().positive().optional(), kind: z.enum(["readme", "portfolio", "resume"]), content: z.string().min(1).max(10000) }))
+      .mutation(({ ctx, input }) => createPortfolioDraft(ctx.user.id, input.projectId, input.kind, input.content)),
     updateSettings: protectedProcedure
       .input(z.object({ hanaPersonality: z.string().max(64).optional(), preferredExplanationStyle: z.string().max(64).optional(), notificationsEnabled: z.boolean().optional(), voiceEnabled: z.boolean().optional(), memoryEnabled: z.boolean().optional() }))
       .mutation(({ ctx, input }) => updateLearnerSettings(ctx.user.id, input)),
