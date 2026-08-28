@@ -102,6 +102,14 @@ export async function listLearnerProjects(userId: number) {
   return db.select().from(learnerProjects).where(eq(learnerProjects.userId, userId));
 }
 
+export async function updateProjectCheckpoint(userId: number, projectId: number, progress: number, currentCheckpoint: string, status: "active" | "completed" | "archived" = "active") {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(learnerProjects).set({ progress, currentCheckpoint, status, updatedAt: new Date() }).where(and(eq(learnerProjects.id, projectId), eq(learnerProjects.userId, userId)));
+  const result = await db.select().from(learnerProjects).where(and(eq(learnerProjects.id, projectId), eq(learnerProjects.userId, userId))).limit(1);
+  return result[0];
+}
+
 export async function listLearnerMissions(userId: number) {
   const db = await getDb();
   if (!db) return [];
