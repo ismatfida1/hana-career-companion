@@ -83,9 +83,20 @@ const companionStates: Record<string, string> = {
 
 function HanaAvatar({ mood = "encouraging", small = false }: { mood?: string; small?: boolean }) {
   const image = companionStates[mood] ?? companionStates.default;
+  const localFallback = "/assets/hana-phase1-approved-opening.png";
   return (
     <div className={cn("hana-avatar relative shrink-0 overflow-hidden rounded-[34%] bg-[#142737] shadow-[0_12px_30px_rgba(49,91,108,0.2)]", `hana-avatar-${mood}`, small ? "h-12 w-12" : "h-20 w-20")} aria-label={`Hana is in the ${mood} learning state`}>
-      <img src={image} alt="Hana, the fantasy learning companion" className="h-full w-full object-cover" />
+      <img
+        src={image}
+        alt="Hana, the fantasy learning companion"
+        className="h-full w-full object-cover object-[68%_82%]"
+        onError={(event) => {
+          const target = event.currentTarget;
+          if (target.src.endsWith(localFallback)) return;
+          target.onerror = null;
+          target.src = localFallback;
+        }}
+      />
     </div>
   );
 }
@@ -374,7 +385,19 @@ function GameEntryView({ onEnter }: { onEnter: (view: View) => void }) {
       <div className="game-companion-stage">
         <div className="game-portal" aria-hidden="true"><span /><span /><span /></div>
         <div className="game-companion-glow" aria-hidden="true" />
-        <img className="game-companion" src="/manus-storage/hana-new-companion-concept_628f65ae.png" alt="Hana, your fantasy learning companion" />
+        <img
+          className="game-companion"
+          src="/manus-storage/hana-new-companion-concept_628f65ae.png"
+          alt="Hana, your fantasy learning companion"
+          onError={(event) => {
+            const target = event.currentTarget;
+            const fallback = "/assets/hana-phase1-approved-opening.png";
+            if (target.src.endsWith(fallback)) return;
+            target.onerror = null;
+            target.src = fallback;
+            target.style.objectPosition = "68% 82%";
+          }}
+        />
         <p className="game-companion-caption">A world that meets you where you are.</p>
       </div>
 
