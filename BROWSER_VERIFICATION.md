@@ -25,3 +25,7 @@ After the full-screen correction, `/projects` uses the uploaded Projects/Guild c
 The corrected `/chat` route now presents the uploaded Hana study composition behind translucent conversation and memory-control surfaces; the Ask Hana composer and prompt actions remain available. A click test was attempted while still on `/chat`, so no Roadmap hotspot result is inferred from that attempt.
 
 The corrected Roadmap route was tested interactively. Selecting the Logic Gateway semantic hotspot changed the live accessible location content from Spark Garden to Logic Gateway with the expected detail and unlock state, while the exact illustrated map remained the visible canvas. Continue Mission remains available as the primary action.
+
+## Exact Chat vision checkpoint
+
+The `/chat` route now uses the user-supplied Chat with Hana illustration as its full-screen canvas: https://files.manuscdn.com/user_upload_by_module/session_file/310519663907899784/JBuyxmYjToCUHehH.png. The real conversation stream, quick prompts, Ask Hana textarea/send action, memory toggle, inspect-memory modal, and Hana context data remain live HTML controls layered over the scene. The latest browser checkpoint is `/home/ubuntu/screenshots/127_0_0_1_2026-08-28_08-24-53_4500.webp`.

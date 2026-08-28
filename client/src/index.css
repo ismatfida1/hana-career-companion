@@ -391,3 +391,33 @@ button:active { transform: scale(.98); }
 .roadmap-vision-continue-button:hover, .roadmap-vision-pressed .roadmap-vision-continue-button { border-color: rgba(206,255,227,.55); background: rgba(107,224,193,.11); box-shadow: 0 0 0 5px rgba(132,235,202,.12), 0 0 26px rgba(128,235,209,.3); }
 .roadmap-vision-continue span { opacity: 0; }
 @media (max-width: 760px) { .roadmap-vision-continue { right: 1rem; bottom: 1rem; left: 1rem; } .roadmap-vision-continue-button { min-width: 0; min-height: 3.35rem; } }
+
+/* Exact Chat with Hana vision: the supplied illustration is the scene; live chat and memory controls are layered into its parchment surfaces. */
+.chat-vision-world { position: relative; min-height: 100vh; overflow: hidden; background: #071d2b; color: #2d3c39; isolation: isolate; }
+.chat-vision-art { position: absolute; inset: 0; z-index: -3; height: 100%; width: 100%; object-fit: contain; background: #071d2b; }
+.chat-vision-vignette { position: absolute; inset: 0; z-index: -2; background: linear-gradient(90deg, rgba(3,17,24,.12), transparent 64%, rgba(3,17,24,.18)), linear-gradient(0deg, rgba(3,17,24,.2), transparent 25%); pointer-events: none; }
+.chat-vision-ui { position: absolute; inset: 0; padding: 0; }
+.chat-vision-ui > .world-intro { display: none; }
+.chat-vision-ui > .grid { position: absolute; inset: 17% 6% 7%; display: grid; grid-template-columns: minmax(0, 1fr) 22%; gap: 1.4rem; max-width: none; margin: 0; }
+.chat-vision-ui .surface-card { border: 1px solid rgba(116,87,54,.2); background: rgba(255,247,226,.76); box-shadow: 0 18px 45px rgba(0,8,14,.2); backdrop-filter: blur(6px); }
+.chat-vision-ui > .grid > section { min-height: 0; border-radius: 1.5rem; padding: 1.15rem 1.35rem; }
+.chat-vision-ui > .grid > aside { min-width: 0; }
+.chat-vision-ui > .grid > aside .surface-card { border-radius: 1.25rem; }
+.chat-vision-ui > .grid > section > div:first-child { border-color: rgba(119,91,58,.18); }
+.chat-vision-ui .rounded-\[20px\].border { background: rgba(255,249,233,.84); }
+.chat-vision-ui .rounded-\[20px\].border button { background: #4baf8b; }
+@media (max-width: 760px) {
+  .chat-vision-art { object-fit: cover; object-position: 62% center; }
+  .chat-vision-ui > .grid { inset: 14% .75rem .75rem; display: block; overflow-y: auto; padding-bottom: 1rem; }
+  .chat-vision-ui > .grid > section { min-height: 64svh; }
+  .chat-vision-ui > .grid > aside { display: grid; grid-template-columns: 1fr; gap: .75rem; margin-top: .75rem; }
+  .chat-vision-ui .surface-card { background: rgba(255,247,226,.88); }
+}
+
+/* Chat fidelity pass: the user-supplied artwork already contains the parchment panels and sample conversation, so live HTML content must sit on the canvas without opaque cards hiding it. */
+.chat-vision-ui .surface-card { border-color: transparent; background: transparent; box-shadow: none; backdrop-filter: none; }
+.chat-vision-ui > .grid > section, .chat-vision-ui > .grid > aside .surface-card { border-color: transparent; background: transparent; box-shadow: none; }
+.chat-vision-ui > .grid > section > div:first-child { border-color: rgba(255,246,216,.3); }
+.chat-vision-ui > .grid > section > div:last-child { border-color: rgba(255,246,216,.5); background: rgba(255,249,233,.46); }
+.chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] { background: rgba(236,247,234,.58); }
+.chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] + button, .chat-vision-ui > .grid > aside .rounded-2xl.bg-\[\#f8f3ed\] ~ button { background: rgba(255,248,229,.48); }
