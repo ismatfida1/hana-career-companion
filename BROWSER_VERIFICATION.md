@@ -43,3 +43,7 @@ The mobile personalized Roadmap checkpoint keeps the complete illustrated map in
 ## Project Guild checkpoint
 
 Project cards now include a bounded Guild field kit with one Learn, one Practice, and one Build Proof resource selected from the master catalog according to the project skills. Weather app surfaces JavaScript.info, freeCodeCamp JavaScript, and Full Stack Open React; Study assistant surfaces Python Tutorial, Exercism Python, and freeCodeCamp Python. Desktop and mobile verification show the resource cards and checkpoint actions wrapping without overlap.
+
+## Adventurer’s Board checkpoint
+
+Opportunity cards now include focused Trail Markers selected from the master catalog. Hackathons surface MLH, freeCodeCamp, and Devpost; open-source programs surface The Odin Project, freeCodeCamp, and Frontend Mentor; career/fellowship items surface roadmap.sh, freeCodeCamp, and Frontend Mentor. Desktop and mobile layouts keep filters, opportunity details, Save/View Details actions, and resource cards in separate readable regions.
