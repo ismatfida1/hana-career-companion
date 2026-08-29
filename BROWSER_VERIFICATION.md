@@ -47,3 +47,7 @@ Project cards now include a bounded Guild field kit with one Learn, one Practice
 ## Adventurer’s Board checkpoint
 
 Opportunity cards now include focused Trail Markers selected from the master catalog. Hackathons surface MLH, freeCodeCamp, and Devpost; open-source programs surface The Odin Project, freeCodeCamp, and Frontend Mentor; career/fellowship items surface roadmap.sh, freeCodeCamp, and Frontend Mentor. Desktop and mobile layouts keep filters, opportunity details, Save/View Details actions, and resource cards in separate readable regions.
+
+## Profile and Settings checkpoint
+
+Profile renders live evidence metrics, demonstrated skills, achievements, and empty states without inventing learner scores. Settings renders profile, notification, memory, and connected-account sections. Notification and memory toggles now call the protected settings mutation; Delete all memory calls the protected delete-memory mutation. Remaining polish includes loading persisted toggle values and making the profile fields editable when the learner chooses Edit profile.
