@@ -172,6 +172,16 @@ export async function createPortfolioDraft(userId: number, projectId: number | u
 export async function upsertLearnerProfile(userId: number, profile: Omit<InsertLearnerProfile, "userId">) {
   const db = await getDb(); if (!db) return undefined;
   const values: InsertLearnerProfile = { userId, ...profile };
-  await db.insert(learnerProfiles).values(values).onDuplicateKeyUpdate({ set: { careerGoal: profile.careerGoal, experienceLevel: profile.experienceLevel, dailyMinutes: profile.dailyMinutes, interests: profile.interests, learningStyle: profile.learningStyle, memoryEnabled: profile.memoryEnabled, updatedAt: new Date() } });
+  const updateSet = {
+    careerGoal: profile.careerGoal,
+    experienceLevel: profile.experienceLevel,
+    dailyMinutes: profile.dailyMinutes,
+    interests: profile.interests,
+    learningStyle: profile.learningStyle,
+    memoryEnabled: profile.memoryEnabled,
+    ...(profile.careerPath !== undefined ? { careerPath: profile.careerPath } : {}),
+    updatedAt: new Date(),
+  };
+  await db.insert(learnerProfiles).values(values).onDuplicateKeyUpdate({ set: updateSet });
   return getLearnerProfile(userId);
 }
