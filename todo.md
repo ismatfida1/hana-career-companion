@@ -31,12 +31,18 @@
 - [x] Add profile, learning preferences, Hana preferences, notification opt-in, privacy, and connected-account controls.
 - [x] Add typed backend procedures and persistent data models for all learner-owned records.
 - [x] Expand Vitest coverage for core domain procedures and privacy boundaries across learner-owned records.
+- [x] Add a persisted career-path selector with focused CS, AI/ML, and Cybersecurity entry choices.
+- [x] Add additional major technology career paths with five-stage roadmaps.
+- [x] Add a searchable skill explorer with primary and alternative learning links for each catalogued skill.
+- [x] Keep the full career/skill catalog behind progressive disclosure so the main experience stays focused.
+- [x] Make Hana Chat aware of the learner's selected career direction.
+- [x] Add migration coverage for the persisted careerPath profile field.
 - [x] Verify responsive, accessibility, loading, empty, and error states.
 - [x] Capture final checkpoint and deliver the working Hana project.
 
 ## Current implementation status
 
-The core learner loop is connected: the roadmap has five fantasy worlds with progress and locked previews; missions persist step progress; project checkpoints create protected portfolio drafts on completion; the learner profile reads persisted records; Hana Chat uses the server-side AI with optional Wolfram computation; and `.env.example` documents the required configuration. Remaining work is primarily deployment-level visual verification, runtime asset availability, focused test expansion, and optional integrations listed in `REMAINING_WORK_PLAN.md`.
+The core learner loop is connected: the roadmap has five fantasy worlds with progress and locked previews; missions persist step progress; project checkpoints create protected portfolio drafts on completion; the learner profile reads persisted records; Hana Chat uses the server-side AI with optional Wolfram computation; and `.env.example` documents the required configuration. Career planning now includes a persisted direction selector, a focused five-stage roadmap for that direction, a broader career catalog, and a searchable skill/resource explorer with alternatives. Remaining verification is primarily deployment-level visual/runtime checking.
 
 ## Change history
 
