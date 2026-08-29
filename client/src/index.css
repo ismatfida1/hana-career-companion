@@ -486,3 +486,203 @@ button:active { transform: scale(.98); }
   .roadmap-vision-art { aspect-ratio: 16 / 9; object-fit: contain; object-position: center top; }
   .roadmap-vision { min-height: 0; }
 }
+/* HANA FANTASY SCREEN — RESPONSIVE FIT */
+.game-entry {
+  width: 100%;
+  height: 100svh;
+  min-height: 620px;
+  overflow: hidden;
+}
+
+.game-entry-bright,
+.game-entry-dark {
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+/* Keep the UI inside the visible laptop viewport */
+.game-entry-copy,
+.game-title-block,
+.game-menu-panel,
+.game-companion-stage,
+.game-entry-footer {
+  max-width: 100%;
+}
+
+/* Laptop / desktop */
+@media (min-width: 1024px) {
+  .game-entry {
+    min-height: 100svh;
+  }
+
+  .game-title-block {
+    transform: scale(0.9);
+    transform-origin: center left;
+  }
+
+  .game-companion-stage {
+    transform: scale(0.9);
+    transform-origin: center;
+  }
+
+  .game-menu-panel {
+    transform: scale(0.88);
+    transform-origin: center left;
+  }
+}
+
+/* Smaller laptops */
+@media (min-width: 768px) and (max-width: 1200px) {
+  .game-title-block {
+    transform: scale(0.78);
+    transform-origin: center left;
+  }
+
+  .game-companion-stage {
+    transform: scale(0.78);
+    transform-origin: center;
+  }
+
+  .game-menu-panel {
+    transform: scale(0.76);
+    transform-origin: center left;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .game-entry {
+    min-height: 100svh;
+    height: 100svh;
+  }
+
+  .game-entry-bright,
+  .game-entry-dark {
+    background-position: center center;
+  }
+
+  .game-title-block,
+  .game-menu-panel,
+  .game-companion-stage {
+    transform: scale(0.72);
+    transform-origin: center;
+  }
+
+  .game-entry-footer {
+    font-size: 9px;
+  }
+}
+/* HANA MAIN MENU — READABLE FANTASY CONTRAST */
+.game-menu-panel .game-menu-item {
+  color: #18333a;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.45);
+}
+
+.game-menu-panel .game-menu-label {
+  color: #18333a;
+  font-weight: 800;
+}
+
+.game-menu-panel .game-menu-description {
+  color: #31544f;
+  font-weight: 600;
+}
+
+.game-menu-panel .game-menu-icon,
+.game-menu-panel .game-menu-arrow {
+  color: #315d58;
+  opacity: 1;
+}
+
+/* Hover and keyboard selection */
+.game-menu-panel .game-menu-item:hover,
+.game-menu-panel .game-menu-item:focus-visible,
+.game-menu-panel .game-menu-item-selected {
+  color: #102c31;
+}
+
+.game-menu-panel .game-menu-item:hover .game-menu-label,
+.game-menu-panel .game-menu-item:focus-visible .game-menu-label,
+.game-menu-panel .game-menu-item-selected .game-menu-label {
+  color: #102c31;
+}
+
+.game-menu-panel .game-menu-item:hover .game-menu-description,
+.game-menu-panel .game-menu-item:focus-visible .game-menu-description,
+.game-menu-panel .game-menu-item-selected .game-menu-description {
+  color: #244842;
+}
+
+.game-menu-panel .game-menu-item:hover .game-menu-icon,
+.game-menu-panel .game-menu-item:hover .game-menu-arrow,
+.game-menu-panel .game-menu-item:focus-visible .game-menu-icon,
+.game-menu-panel .game-menu-item:focus-visible .game-menu-arrow,
+.game-menu-panel .game-menu-item-selected .game-menu-icon,
+.game-menu-panel .game-menu-item-selected .game-menu-arrow {
+  color: #173f3a;
+  opacity: 1;
+}/* HANA FANTASY MENU — HIGH CONTRAST PANEL */
+.game-entry .game-menu-panel {
+  background: rgba(10, 27, 35, 0.88) !important;
+  border: 1px solid rgba(217, 246, 207, 0.45) !important;
+  border-radius: 24px;
+  padding: 28px 30px !important;
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.35),
+    0 0 35px rgba(125, 199, 129, 0.12);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.game-entry .game-menu-panel h1,
+.game-entry .game-menu-panel .game-title-subtitle,
+.game-entry .game-menu-panel .game-title-eyebrow {
+  color: #fdf7ed !important;
+}
+
+.game-entry .game-menu-item {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(217, 246, 207, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.game-entry .game-menu-item .game-menu-label {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+
+.game-entry .game-menu-item .game-menu-description {
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.game-entry .game-menu-item .game-menu-icon,
+.game-entry .game-menu-item .game-menu-arrow {
+  color: #d9f6cf !important;
+  opacity: 1 !important;
+}
+
+/* Selected / hovered item */
+.game-entry .game-menu-item:hover,
+.game-entry .game-menu-item:focus-visible,
+.game-entry .game-menu-item-selected {
+  background: rgba(217, 246, 207, 0.16) !important;
+  border-color: rgba(217, 246, 207, 0.7) !important;
+  box-shadow: 0 0 22px rgba(217, 246, 207, 0.14);
+}
+
+.game-entry .game-menu-item:hover .game-menu-label,
+.game-entry .game-menu-item:focus-visible .game-menu-label,
+.game-entry .game-menu-item-selected .game-menu-label {
+  color: #ffffff !important;
+}
+
+.game-entry .game-menu-item:hover .game-menu-description,
+.game-entry .game-menu-item:focus-visible .game-menu-description,
+.game-entry .game-menu-item-selected .game-menu-description {
+  color: #eaf8e5 !important;
+}
+
+.game-entry .game-back-link {
+  color: #d9f6cf !important;
+}

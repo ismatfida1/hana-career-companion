@@ -105,7 +105,24 @@ export async function listLearnerProjects(userId: number) {
 export async function updateProjectCheckpoint(userId: number, projectId: number, progress: number, currentCheckpoint: string, status: "active" | "completed" | "archived" = "active") {
   const db = await getDb();
   if (!db) return undefined;
+  
+  // Get the current project before updating
+  const currentProject = await db.select().from(learnerProjects).where(and(eq(learnerProjects.id, projectId), eq(learnerProjects.userId, userId))).limit(1);
+  const oldProgress = currentProject[0]?.progress ?? 0;
+  
+  // Update the project
   await db.update(learnerProjects).set({ progress, currentCheckpoint, status, updatedAt: new Date() }).where(and(eq(learnerProjects.id, projectId), eq(learnerProjects.userId, userId)));
+  
+  // Automatically create portfolio evidence when project reaches 70% or higher
+  // and wasn't previously at that threshold
+  if (progress >= 70 && oldProgress < 70 && status === "active") {
+    const project = currentProject[0];
+    if (project) {
+      const portfolioContent = `# ${project.title}\n\nProject Progress: ${progress}%\n\nCurrent Checkpoint: ${currentCheckpoint}\n\nSkills Developed: ${project.skills || "Various programming concepts"}\n\nDescription: ${project.description || "A learner-built project demonstrating practical application of CS concepts."}\n\nEvidence: This project checkpoint demonstrates progress in building real solutions.`;
+      await createPortfolioDraft(userId, projectId, "portfolio", portfolioContent);
+    }
+  }
+  
   const result = await db.select().from(learnerProjects).where(and(eq(learnerProjects.id, projectId), eq(learnerProjects.userId, userId))).limit(1);
   return result[0];
 }
