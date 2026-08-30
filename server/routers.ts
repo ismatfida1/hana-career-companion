@@ -22,7 +22,7 @@ export const appRouter = router({
   }),
   opportunities: router({ list: publicProcedure.query(() => listOpportunities()) }),
   ai: router({
-    compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(async ({ input }) => {
+    compute: protectedProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(async ({ input }) => {
       const result = await queryWolframAlpha(input.query);
       if (result.status !== "ok") throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: result.message });
       return result;
