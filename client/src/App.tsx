@@ -5,6 +5,7 @@ import { Link, Route, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import JourneyStart from "./pages/JourneyStart";
 import AdventureHome from "./pages/AdventureHome";
 import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
@@ -16,7 +17,7 @@ import CareerHub from "./pages/CareerHub";
 
 function Router() {
   return <Switch>
-    <Route path="/" component={AdventureHome} />
+    <Route path="/" component={JourneyStart} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={CareerPath} />
     <Route path="/projects" component={Projects} />
@@ -29,6 +30,7 @@ function Router() {
     <Route path="/path" component={CareerPath} />
     <Route path="/career-path" component={CareerPath} />
     <Route path="/journey" component={CareerHub} />
+    <Route path="/adventure" component={AdventureHome} />
     <Route path="/legacy-adventure" component={AdventureHome} />
     <Route path="/:rest*" component={NotFound} />
     <Route component={NotFound} />
