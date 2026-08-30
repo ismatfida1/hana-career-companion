@@ -1,0 +1,1 @@
+Checkpoint marker: current main state preserved before the visual/navigation/curriculum/resource integration work requested on 2026-08-30. Use git history before this commit to return to the previous submission-ready state if needed.
