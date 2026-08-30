@@ -47,6 +47,28 @@ async function startServer() {
     catch (error) { console.error("[Research] search failed", error); res.status(502).json({ error: "Research search is temporarily unavailable", results: [] }); }
   });
 
+  app.post("/api/curriculum-check", async (req, res) => {
+    const careerPath = typeof req.body?.careerPath === "string" ? req.body.careerPath.trim() : "";
+    const stage = typeof req.body?.stage === "string" ? req.body.stage.trim() : "";
+    const university = typeof req.body?.university === "string" ? req.body.university.trim() : "";
+    const curriculumUrl = typeof req.body?.curriculumUrl === "string" ? req.body.curriculumUrl.trim() : "";
+    const skills = Array.isArray(req.body?.skills) ? req.body.skills.filter((item: unknown): item is string => typeof item === "string").slice(0, 12) : [];
+    if (!careerPath || !stage || !university || !curriculumUrl) return res.status(400).json({ error: "Missing curriculum comparison details" });
+    const prompt = `Compare this Hana learning roadmap stage with the official university curriculum page below. This is a research step only: DO NOT modify the roadmap. Read the official curriculum page using web search, identify 2-4 meaningful overlaps and any important gaps, and finish by asking the learner whether they want Hana to adjust the roadmap. Keep it concise and practical.\n\nCareer path: ${careerPath}\nStage: ${stage}\nStage skills: ${skills.join(", ") || "not specified"}\nUniversity: ${university}\nOfficial curriculum URL: ${curriculumUrl}`;
+    try {
+      if (ENV.openaiApiKey) {
+        const result = await invokeOpenAIHana({ systemPrompt: "You are Hana's curriculum-matching researcher. Use the official university curriculum as the primary source. Do not claim a curriculum was checked unless web search actually retrieved it. Distinguish what the curriculum explicitly contains from your recommendation. Never make changes automatically.", history: [], message: prompt, enableWebSearch: true, forceWebSearch: true });
+        return res.json({ answer: result.answer, sources: result.sources, provider: "openai", model: result.model });
+      }
+      const results = await searchField(`${university} ${stage} official curriculum ${careerPath}`);
+      const summary = results.slice(0, 4).map((item: any) => `• ${item.title}: ${item.snippet}`).join("\n");
+      return res.json({ answer: `I found curriculum-related sources, but the AI curriculum comparison API is not configured.\n\n${summary}\n\nWould you like Hana to adjust the roadmap after reviewing these sources?`, sources: results.slice(0, 4), provider: "research" });
+    } catch (error) {
+      console.error("[Curriculum] check failed", error);
+      return res.status(502).json({ error: "Hana could not complete the live curriculum check. You can still open the official curriculum or ask Hana to research it." });
+    }
+  });
+
   app.post("/api/free-chat", async (req, res) => {
     const message = typeof req.body?.message === "string" ? req.body.message.trim() : "";
     if (!message) return res.status(400).json({ error: "Missing message" });
@@ -57,28 +79,16 @@ async function startServer() {
 
     if (ENV.openaiApiKey) {
       try {
-        const result = await invokeOpenAIHana({
-          systemPrompt: system,
-          message,
-          history: history.map((item: any) => ({ role: item.role === "model" ? "assistant" : item.role, content: item.text })),
-          enableWebSearch: true,
-          forceWebSearch: /\b(latest|current|today|recent|news|search|browse|look up|research|find|links?|sources?|courses?|youtube|universit(?:y|ies)|scholarships?|opportunit(?:y|ies)|2026)\b/i.test(message),
-        });
+        const result = await invokeOpenAIHana({ systemPrompt: system, message, history: history.map((item: any) => ({ role: item.role === "model" ? "assistant" : item.role, content: item.text })), enableWebSearch: true, forceWebSearch: /\b(latest|current|today|recent|news|search|browse|look up|research|find|links?|sources?|courses?|youtube|universit(?:y|ies)|scholarships?|opportunit(?:y|ies)|2026)\b/i.test(message) });
         return res.json({ answer: result.answer, sources: result.sources, provider: "openai", model: result.model });
-      } catch (error) {
-        console.warn("[OpenAI Hana] failed; trying Gemini", error instanceof Error ? error.message : error);
-      }
+      } catch (error) { console.warn("[OpenAI Hana] failed; trying Gemini", error instanceof Error ? error.message : error); }
     }
-
     if (ENV.geminiApiKey) {
       try {
         const answer = await generateFreeHanaReply(system, message, history.filter((item: any) => item.role === "user" || item.role === "model"));
         return res.json({ answer, sources: [], provider: "gemini" });
-      } catch (error) {
-        console.warn("[Gemini Hana] failed; using local fallback", error instanceof Error ? error.message : error);
-      }
+      } catch (error) { console.warn("[Gemini Hana] failed; using local fallback", error instanceof Error ? error.message : error); }
     }
-
     return res.json({ answer: localHana(message), sources: [], provider: "local-demo" });
   });
 
