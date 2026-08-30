@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdventureHome from "./pages/AdventureHome";
+import JourneyStart from "./pages/JourneyStart";
 import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
 import Research from "./pages/Research";
@@ -16,7 +17,6 @@ import CareerHub from "./pages/CareerHub";
 
 function Router() {
   return <Switch>
-    {/* The original game-style Hana opening is the real home screen. */}
     <Route path="/" component={AdventureHome} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={CareerPath} />
@@ -26,8 +26,8 @@ function Router() {
     <Route path="/research" component={Research} />
     <Route path="/profile" component={Home} />
     <Route path="/settings" component={Home} />
-    <Route path="/onboarding" component={CareerPath} />
-    <Route path="/path" component={CareerPath} />
+    <Route path="/onboarding" component={JourneyStart} />
+    <Route path="/path" component={JourneyStart} />
     <Route path="/career-path" component={CareerPath} />
     <Route path="/journey" component={CareerHub} />
     <Route path="/adventure" component={AdventureHome} />
@@ -40,7 +40,7 @@ function Router() {
 function BackButton() {
   const [location] = useLocation();
   if (location === "/") return null;
-  return <Link href="/" className="fixed bottom-4 left-4 z-[80] inline-flex items-center gap-2 rounded-full border border-[#d9cfc2] bg-[#fffaf4]/95 px-4 py-2 text-xs font-bold text-[#315d58] shadow-lg backdrop-blur-xl transition hover:bg-white" aria-label="Back to Hana title screen">← Back</Link>;
+  return <Link href="/" className="fixed bottom-4 left-4 z-[80] inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#101d2b]/90 px-4 py-2 text-xs font-bold text-[#f1c77b] shadow-lg backdrop-blur-xl transition hover:bg-[#172a3b]" aria-label="Back to Hana adventure">← Back to Hana</Link>;
 }
 
 function DynamicDateFix() {
