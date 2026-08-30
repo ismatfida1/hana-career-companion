@@ -21,28 +21,46 @@ export const appRouter = router({
   }),
   opportunities: router({ list: publicProcedure.query(() => listOpportunities()) }),
   ai: router({
-    compute: protectedProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(({ input }) => queryWolframAlpha(input.query)),
-    chat: protectedProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
-      const [profile, memoryItems, projects, missions] = await Promise.all([getLearnerProfile(ctx.user.id), input.memoryEnabled ? listMemoryItems(ctx.user.id) : Promise.resolve([]), listLearnerProjects(ctx.user.id), listLearnerMissions(ctx.user.id)]);
+    // Computation is a public demo capability; no account is needed to ask Hana
+    // for a calculation and the server never exposes the Wolfram App ID.
+    compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(({ input }) => queryWolframAlpha(input.query)),
+    // Chat is intentionally public for the hackathon/demo flow. Authenticated
+    // learners get persistence and memory; guests get the same core intelligence
+    // without being blocked by OAuth configuration.
+    chat: publicProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
+      const userId = ctx.user?.id;
+      const [profile, memoryItems, projects, missions] = userId
+        ? await Promise.all([getLearnerProfile(userId), input.memoryEnabled ? listMemoryItems(userId) : Promise.resolve([]), listLearnerProjects(userId), listLearnerMissions(userId)])
+        : [null, [], [], []];
       const allowedMemory = memoryItems.filter(item => !item.isDeleted).slice(-12);
-      const context = [`Learner profile: ${JSON.stringify(profile ?? { careerGoal: "Software engineer", careerPath: "computer-science", experienceLevel: "Beginner", learningStyle: "Examples first" })}`, `Active projects: ${JSON.stringify(projects.slice(-6))}`, `Learning missions: ${JSON.stringify(missions.slice(-6))}`, input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context."].join("\n");
+      const context = [
+        `Learner profile: ${JSON.stringify(profile ?? { careerGoal: "Software engineer", careerPath: "computer-science", experienceLevel: "Beginner", learningStyle: "Examples first" })}`,
+        `Active projects: ${JSON.stringify(projects.slice(-6))}`,
+        `Learning missions: ${JSON.stringify(missions.slice(-6))}`,
+        input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context.",
+      ].join("\n");
       const wolframTool = { type: "function" as const, function: { name: "wolfram_alpha", description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation. Do not use it for ordinary conversation, career coaching, or explanations that do not require computation.", parameters: { type: "object", properties: { query: { type: "string", description: "A concise natural-language computational query." } }, required: ["query"], additionalProperties: false } } };
-      const systemPrompt = `You are Hana, a warm and practical career companion for a learner. Give one clear next step, explain concepts in plain language, avoid arbitrary scores, and never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You may call wolfram_alpha only when the learner asks for a calculation, mathematics, unit conversion, statistics, or computational knowledge. Do not call it for every question. If it is unavailable, explain the limitation honestly and continue helpfully.\n\n${context}`;
-      const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: input.message }] });
-      const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
-      let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
-      if (toolCall) {
-        let toolQuery = input.message;
-        try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
-        const computation = await queryWolframAlpha(toolQuery);
-        const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
-        const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt} Explain the following computation naturally, distinguish the computed result from your explanation, and keep the answer beginner-friendly. End with one clear next step when useful.\n\n${computationSummary}` }, { role: "user", content: input.message }] });
-        rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
+      const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You may call wolfram_alpha only when the learner asks for a calculation, mathematics, unit conversion, statistics, or computational knowledge. Do not call it for ordinary conversation. If Wolfram is unavailable, explain the limitation honestly and continue helpfully. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
+      try {
+        const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: input.message }] });
+        const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
+        let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
+        if (toolCall) {
+          let toolQuery = input.message;
+          try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
+          const computation = await queryWolframAlpha(toolQuery);
+          const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
+          const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt} Explain the following computation naturally, distinguish the computed result from your explanation, and keep the answer beginner-friendly. End with one clear next step when useful.\n\n${computationSummary}` }, { role: "user", content: input.message }] });
+          rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
+        }
+        const answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
+        const conversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
+        if (userId && conversationId) { await createChatMessage(userId, conversationId, "user", input.message); await createChatMessage(userId, conversationId, "assistant", answer); }
+        return { answer, conversationId };
+      } catch (error) {
+        console.error("[Hana AI] chat failed", error);
+        return { answer: "I’m still here. My AI service is temporarily unavailable, but we can keep moving: tell me what you’re learning or where you’re stuck, and I’ll help you choose the next step.", conversationId: null };
       }
-      const answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
-      const conversationId = input.conversationId ?? await createChatConversation(ctx.user.id, input.message.slice(0, 120));
-      if (conversationId) { await createChatMessage(ctx.user.id, conversationId, "user", input.message); await createChatMessage(ctx.user.id, conversationId, "assistant", answer); }
-      return { answer, conversationId: conversationId ?? null };
     }),
   }),
   learner: router({
@@ -61,7 +79,7 @@ export const appRouter = router({
     deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
     updateMission: protectedProcedure.input(z.object({ missionId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentStep: z.string().min(1).max(64), state: z.enum(["not-started", "in-progress", "completed"]) })).mutation(({ ctx, input }) => updateMissionProgress(ctx.user.id, input.missionId, input.progress, input.currentStep, input.state)),
     saveOpportunity: protectedProcedure.input(z.object({ opportunityId: z.number().int().positive(), status: z.enum(["saved", "planning", "applied", "accepted", "rejected"]) })).mutation(({ ctx, input }) => upsertSavedOpportunity(ctx.user.id, input.opportunityId, input.status)),
-    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
+    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.projectId, input.progress, input.currentCheckpoint, input.status)),
     savePortfolioDraft: protectedProcedure.input(z.object({ projectId: z.number().int().positive().optional(), kind: z.enum(["readme", "portfolio", "resume"]), content: z.string().min(1).max(10000) })).mutation(({ ctx, input }) => createPortfolioDraft(ctx.user.id, input.projectId, input.kind, input.content)),
     updateSettings: protectedProcedure.input(z.object({ hanaPersonality: z.string().max(64).optional(), preferredExplanationStyle: z.string().max(64).optional(), notificationsEnabled: z.boolean().optional(), voiceEnabled: z.boolean().optional(), memoryEnabled: z.boolean().optional() })).mutation(({ ctx, input }) => updateLearnerSettings(ctx.user.id, input)),
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
