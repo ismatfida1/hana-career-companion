@@ -7,6 +7,7 @@ import superjson from "superjson";
 import App from "./App";
 import "./index.css";
 import "./layout-hardening.css";
+import "./styles/hana-game-layout-fixes.css";
 
 const queryClient = new QueryClient();
 
