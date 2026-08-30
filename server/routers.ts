@@ -7,6 +7,7 @@ import { generateFreeHanaReply } from "./_core/freeLlm";
 import { queryWolframAlpha } from "./_core/wolfram";
 import { ENV } from "./_core/env";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { TRPCError } from "@trpc/server";
 import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, getLearnerSummary, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, createPortfolioDraft, updateLearnerSettings, updateMissionProgress, updateProjectCheckpoint, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
 import { z } from "zod";
 
@@ -21,7 +22,11 @@ export const appRouter = router({
   }),
   opportunities: router({ list: publicProcedure.query(() => listOpportunities()) }),
   ai: router({
-    compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(({ input }) => queryWolframAlpha(input.query)),
+    compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(async ({ input }) => {
+      const result = await queryWolframAlpha(input.query);
+      if (result.status !== "ok") throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: result.message });
+      return result;
+    }),
     chat: publicProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true), history: chatHistorySchema })).mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       const [profile, memoryItems, projects, missions] = userId ? await Promise.all([getLearnerProfile(userId), input.memoryEnabled ? listMemoryItems(userId) : Promise.resolve([]), listLearnerProjects(userId), listLearnerMissions(userId)]) : [null, [], [], []];
