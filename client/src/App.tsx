@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Link, Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import AdventureHome from "./pages/AdventureHome";
 import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
 import JourneyStart from "./pages/JourneyStart";
@@ -11,8 +12,9 @@ import JourneyStart from "./pages/JourneyStart";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={JourneyStart} />
+      <Route path="/" component={AdventureHome} />
       <Route path="/path" component={CareerPath} />
+      <Route path="/journey" component={JourneyStart} />
       <Route path="/home" component={Home} />
       <Route path="/:rest*" component={Home} />
       <Route path="/404" component={NotFound} />
