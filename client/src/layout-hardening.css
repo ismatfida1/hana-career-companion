@@ -1,0 +1,12 @@
+/* Shared release-safe layout rules. The fantasy artwork remains unchanged. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body, #root { width: 100%; min-width: 0; }
+body { overflow-x: hidden; }
+img, svg, video, canvas { max-width: 100%; }
+button, a, input, textarea, select { min-width: 0; }
+a { overflow-wrap: anywhere; }
+main, section, article, header, footer, nav, div { min-width: 0; }
+/* Never let long generated text create horizontal page crossover. */
+p, h1, h2, h3, h4, h5, h6, span { overflow-wrap: anywhere; }
+/* Prevent media from forcing a card beyond its grid/flex track. */
+.flex > *, .grid > * { min-width: 0; }
