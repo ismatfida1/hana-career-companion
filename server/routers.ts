@@ -26,7 +26,7 @@ export const appRouter = router({
       const [profile, memoryItems, projects, missions] = userId ? await Promise.all([getLearnerProfile(userId), input.memoryEnabled ? listMemoryItems(userId) : Promise.resolve([]), listLearnerProjects(userId), listLearnerMissions(userId)]) : [null, [], [], []];
       const allowedMemory = memoryItems.filter(item => !item.isDeleted).slice(-12);
       const context = [`Learner profile: ${JSON.stringify(profile ?? { careerGoal: "Software engineer", careerPath: "computer-science", experienceLevel: "Beginner", learningStyle: "Examples first" })}`, `Active projects: ${JSON.stringify(projects.slice(-6))}`, `Learning missions: ${JSON.stringify(missions.slice(-6))}`, input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context."].join("\n");
-      const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You can browse the web when current or niche information is needed. When you browse, use reliable sources, distinguish current facts from your own advice, and include useful source links. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
+      const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You can browse the web when current or niche information is needed. When you browse, prefer primary/official sources, verify dates and distinguish current facts from advice, and include useful source links. When recommending learning resources, prefer one high-fit interactive or university resource rather than a list. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
       const history = input.history.slice(-10);
       try {
         let answer: string;
@@ -41,9 +41,7 @@ export const appRouter = router({
             try {
               const computation = await queryWolframAlpha(input.message);
               if (computation.status === "ok") enrichedPrompt += `\n\nVerified Wolfram|Alpha computation:\n${computation.result}`;
-            } catch (error) {
-              console.warn("[Wolfram] optional computation failed", error);
-            }
+            } catch (error) { console.warn("[Wolfram] optional computation failed", error); }
           }
           const response = await invokeOpenAIHana({
             systemPrompt: enrichedPrompt,
@@ -54,23 +52,11 @@ export const appRouter = router({
           answer = response.answer;
           sources = response.sources;
           provider = "openai";
-          if (sources.length > 0) {
-            answer += `\n\n**Sources**\n${sources.slice(0, 5).map(source => `- [${source.title}](${source.url})`).join("\n")}`;
-          }
+          if (sources.length > 0) answer += `\n\n**Sources**\n${sources.slice(0, 5).map(source => `- [${source.title}](${source.url})`).join("\n")}`;
         } else if (process.env.BUILT_IN_FORGE_API_KEY) {
-          const wolframTool = { type: "function" as const, function: { name: "wolfram_alpha", description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation.", parameters: { type: "object", properties: { query: { type: "string", description: "A concise natural-language computational query." } }, required: ["query"], additionalProperties: false } } };
-          const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
-          const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
-          let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
-          if (toolCall) {
-            let toolQuery = input.message;
-            try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
-            const computation = await queryWolframAlpha(toolQuery);
-            const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
-            const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt}\n\n${computationSummary}` }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
-            rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
-          }
-          answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
+          const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
+          const raw = response.choices[0]?.message?.content ?? "";
+          answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
           provider = "forge";
         } else if (process.env.GEMINI_API_KEY) {
           answer = await generateFreeHanaReply(systemPrompt, input.message, history);
@@ -82,17 +68,22 @@ export const appRouter = router({
         if (userId && savedConversationId) { await createChatMessage(userId, savedConversationId, "user", input.message); await createChatMessage(userId, savedConversationId, "assistant", answer); }
         return { answer, conversationId: savedConversationId, provider, sources };
       } catch (error) {
-        console.error("[Hana AI] provider failed; using fallback", error);
+        console.error("[Hana AI] primary provider failed; trying fallbacks", error);
         try {
-          if (process.env.GEMINI_API_KEY && !process.env.OPENAI_API_KEY) {
+          if (process.env.GEMINI_API_KEY) {
             const answer = await generateFreeHanaReply(systemPrompt, input.message, history);
             return { answer, conversationId: null, provider: "gemini" as const, sources: [] };
           }
-        } catch (fallbackError) {
-          console.error("[Hana AI] Gemini fallback failed", fallbackError);
-        }
-        const answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science");
-        return { answer, conversationId: null, provider: "local" as const, sources: [] };
+        } catch (fallbackError) { console.error("[Hana AI] Gemini fallback failed", fallbackError); }
+        try {
+          if (process.env.BUILT_IN_FORGE_API_KEY) {
+            const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
+            const raw = response.choices[0]?.message?.content ?? "";
+            const answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
+            if (answer) return { answer, conversationId: null, provider: "forge" as const, sources: [] };
+          }
+        } catch (fallbackError) { console.error("[Hana AI] Forge fallback failed", fallbackError); }
+        return { answer: buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science"), conversationId: null, provider: "local" as const, sources: [] };
       }
     }),
   }),
