@@ -33,57 +33,26 @@ export const appRouter = router({
         let answer: string;
         let provider: "openai" | "forge" | "gemini" | "local" = "local";
         let sources: Array<{ title: string; url: string }> = [];
-
         if (ENV.openaiApiKey) {
           let enrichedPrompt = systemPrompt;
           const lower = input.message.toLowerCase();
           const likelyComputational = /\b(calculate|solve|convert|equation|percentage|percent|average|mean|median|probability|integral|derivative|factorial|square root|sqrt|kg|km|miles|celsius|fahrenheit)\b/.test(lower);
-          if (likelyComputational) {
-            try {
-              const computation = await queryWolframAlpha(input.message);
-              if (computation.status === "ok") enrichedPrompt += `\n\nVerified Wolfram|Alpha computation:\n${computation.result}`;
-            } catch (error) { console.warn("[Wolfram] optional computation failed", error); }
-          }
-          const response = await invokeOpenAIHana({
-            systemPrompt: enrichedPrompt,
-            history: history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })),
-            message: input.message,
-            enableWebSearch: true,
-          });
-          answer = response.answer;
-          sources = response.sources;
-          provider = "openai";
+          if (likelyComputational) { try { const computation = await queryWolframAlpha(input.message); if (computation.status === "ok") enrichedPrompt += `\n\nVerified Wolfram|Alpha computation:\n${computation.result}`; } catch (error) { console.warn("[Wolfram] optional computation failed", error); } }
+          const response = await invokeOpenAIHana({ systemPrompt: enrichedPrompt, history: history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), message: input.message, enableWebSearch: true });
+          answer = response.answer; sources = response.sources; provider = "openai";
           if (sources.length > 0) answer += `\n\n**Sources**\n${sources.slice(0, 5).map(source => `- [${source.title}](${source.url})`).join("\n")}`;
         } else if (ENV.forgeApiKey) {
           const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
-          const raw = response.choices[0]?.message?.content ?? "";
-          answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
-          provider = "forge";
-        } else if (ENV.geminiApiKey) {
-          answer = await generateFreeHanaReply(systemPrompt, input.message, history);
-          provider = "gemini";
-        } else {
-          answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science");
-        }
+          const raw = response.choices[0]?.message?.content ?? ""; answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw; provider = "forge";
+        } else if (ENV.geminiApiKey) { answer = await generateFreeHanaReply(systemPrompt, input.message, history); provider = "gemini"; }
+        else { answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science"); }
         const savedConversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
         if (userId && savedConversationId) { await createChatMessage(userId, savedConversationId, "user", input.message); await createChatMessage(userId, savedConversationId, "assistant", answer); }
         return { answer, conversationId: savedConversationId, provider, sources };
       } catch (error) {
         console.error("[Hana AI] primary provider failed; trying fallbacks", error);
-        try {
-          if (ENV.geminiApiKey) {
-            const answer = await generateFreeHanaReply(systemPrompt, input.message, history);
-            return { answer, conversationId: null, provider: "gemini" as const, sources: [] };
-          }
-        } catch (fallbackError) { console.error("[Hana AI] Gemini fallback failed", fallbackError); }
-        try {
-          if (ENV.forgeApiKey) {
-            const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
-            const raw = response.choices[0]?.message?.content ?? "";
-            const answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
-            if (answer) return { answer, conversationId: null, provider: "forge" as const, sources: [] };
-          }
-        } catch (fallbackError) { console.error("[Hana AI] Forge fallback failed", fallbackError); }
+        try { if (ENV.geminiApiKey) return { answer: await generateFreeHanaReply(systemPrompt, input.message, history), conversationId: null, provider: "gemini" as const, sources: [] }; } catch (fallbackError) { console.error("[Hana AI] Gemini fallback failed", fallbackError); }
+        try { if (ENV.forgeApiKey) { const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] }); const raw = response.choices[0]?.message?.content ?? ""; const answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw; if (answer) return { answer, conversationId: null, provider: "forge" as const, sources: [] }; } } catch (fallbackError) { console.error("[Hana AI] Forge fallback failed", fallbackError); }
         return { answer: buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science"), conversationId: null, provider: "local" as const, sources: [] };
       }
     }),
@@ -98,6 +67,8 @@ export const appRouter = router({
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
   }),
 });
+
+export type AppRouter = typeof appRouter;
 
 function buildLocalHanaReply(message: string, careerPath: string) {
   const lower = message.toLowerCase();
