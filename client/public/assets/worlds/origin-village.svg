@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+<title id="title">Origin Village fantasy world</title><desc id="desc">A warm fantasy village with a learning gate, lanterns, hills and a coding shrine.</desc>
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff4e7"/><stop offset="1" stop-color="#d9efe7"/></linearGradient><linearGradient id="hill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#91bfae"/><stop offset="1" stop-color="#5f9684"/></linearGradient></defs>
+<rect width="1600" height="900" fill="url(#sky)"/><circle cx="1290" cy="160" r="86" fill="#ffe1a8" opacity=".9"/><path d="M0 610 C240 480 390 540 580 610 C770 680 930 500 1160 585 C1360 660 1440 530 1600 500 V900 H0Z" fill="url(#hill)"/><path d="M0 720 C270 640 470 680 650 745 C850 820 1040 660 1230 710 C1390 750 1490 690 1600 650 V900 H0Z" fill="#416f67" opacity=".7"/>
+<g fill="#fffaf4" stroke="#456e65" stroke-width="8"><path d="M250 590 l120 -120 120 120 v150 h-240z"/><path d="M1010 540 l130 -150 130 150 v190 h-260z"/></g><g fill="#e9917d"><circle cx="310" cy="610" r="16"/><circle cx="1090" cy="585" r="16"/></g>
+<path d="M730 730 C700 620 760 500 800 470 C840 500 900 620 870 730Z" fill="#315d58" stroke="#f9f1e7" stroke-width="12"/><path d="M800 470 V380 M750 415 L800 360 L850 415" fill="none" stroke="#e9c88f" stroke-width="16" stroke-linecap="round"/><g fill="#e9c88f"><circle cx="130" cy="580" r="14"/><circle cx="1470" cy="610" r="14"/><circle cx="560" cy="530" r="12"/></g>
+</svg>
