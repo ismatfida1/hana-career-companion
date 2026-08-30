@@ -67,7 +67,7 @@ export default function JourneyStart() {
             </div>
 
             <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <Button onClick={() => { window.localStorage.setItem("hana-career-path", selectedPath); navigate("/career-path"); }} className="rounded-full bg-[#315d58] px-6 hover:bg-[#254c48]">Open my roadmap <ArrowRight className="ml-2 h-4 w-4" /></Button>
+              <Button onClick={() => { window.localStorage.setItem("hana-career-path", selectedPath); navigate("/path"); }} className="rounded-full bg-[#315d58] px-6 hover:bg-[#254c48]">Open my roadmap <ArrowRight className="ml-2 h-4 w-4" /></Button>
               <Button onClick={() => { setShowAll(true); document.getElementById("path-explorer")?.scrollIntoView({ behavior: "smooth" }); }} variant="outline" className="rounded-full bg-white/70">Explore all paths</Button>
             </div>
           </div>
@@ -101,7 +101,7 @@ export default function JourneyStart() {
             <div className="flex items-center justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a8d80]">World {String(stageIndex + 1).padStart(2, "0")}</p><h3 className="mt-2 font-display text-2xl font-semibold">{stage.title}</h3></div><Sparkles className="h-5 w-5 text-[#db8b71]" /></div>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-[#6b6259]">{stage.outcome}</p>
             <div className="mt-5 flex flex-wrap gap-2">{stage.skills.map(skill => <span key={skill} className="rounded-full bg-[#f2eee8] px-3 py-1.5 text-xs font-semibold text-[#6e655c]">{skill}</span>)}</div>
-            <Button onClick={() => navigate("/career-path")} className="mt-7 rounded-full bg-[#315d58] hover:bg-[#254c48]">See the full path <ArrowRight className="ml-2 h-4 w-4" /></Button>
+            <Button onClick={() => navigate("/path")} className="mt-7 rounded-full bg-[#315d58] hover:bg-[#254c48]">See the full path <ArrowRight className="ml-2 h-4 w-4" /></Button>
           </div>
 
           <div className="rounded-[28px] border border-[#e6dccf] bg-[#fffaf4] p-5 md:p-7"><p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#9a8d80]">Start with resources</p><h3 className="mt-2 font-display text-xl font-semibold">{stage.world} learning links</h3><div className="mt-5 space-y-2">{resources.slice(0, 6).map(resource => <a key={`${resource.skill}-${resource.url}`} href={resource.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-2xl border border-[#e8dfd3] bg-white px-3.5 py-3 text-sm font-semibold text-[#4f806f] hover:bg-[#edf6f1]"><BookOpen className="h-4 w-4 shrink-0" /><span className="min-w-0 flex-1"><span className="block truncate">{resource.title}</span><span className="block text-xs font-normal text-[#9a8d80]">{resource.skill}</span></span><ExternalLink className="h-4 w-4 shrink-0" /></a>)}</div></div>
