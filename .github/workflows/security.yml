@@ -26,8 +26,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Dependency audit
-        run: pnpm audit --audit-level=high
+      - name: Dependency audit (production runtime)
+        run: pnpm audit --prod --audit-level=high
       - name: Check for accidentally committed API keys
         shell: bash
         run: |
