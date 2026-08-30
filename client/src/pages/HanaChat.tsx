@@ -32,8 +32,8 @@ export default function HanaChat() {
     setMessages(nextMessages); setInput(""); setPending(true);
     try {
       const history = messages.slice(-10).map(message => ({ role: message.role === "assistant" ? "assistant" as const : "user" as const, text: message.content }));
-      const response = await fetch("/api/free-chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: value, history, selectedPath }) });
-      const data = await response.json() as { answer?: string; sources?: { title: string; url: string }[] };
+      const response = await fetch("/api/free-chat", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ message: value, history, selectedPath, clientTime: new Date().toISOString() }) });
+      const data = await response.json() as { answer?: string; sources?: { title: string; url: string }[]; provider?: string; model?: string };
       if (!response.ok || !data.answer) throw new Error("chat unavailable");
       setMessages(prev => [...prev, { role: "assistant", content: data.answer!, sources: data.sources }]);
     } catch {
