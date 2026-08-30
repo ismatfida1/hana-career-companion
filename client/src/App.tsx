@@ -5,7 +5,6 @@ import { Link, Route, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import JourneyStart from "./pages/JourneyStart";
 import AdventureHome from "./pages/AdventureHome";
 import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
@@ -17,7 +16,8 @@ import CareerHub from "./pages/CareerHub";
 
 function Router() {
   return <Switch>
-    <Route path="/" component={JourneyStart} />
+    {/* The original game-style Hana opening is the real home screen. */}
+    <Route path="/" component={AdventureHome} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={CareerPath} />
     <Route path="/projects" component={Projects} />
