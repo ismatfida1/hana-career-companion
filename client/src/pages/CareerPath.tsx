@@ -1,16 +1,18 @@
 import { useMemo, useState } from "react";
-import { ArrowRight, BookOpen, Check, ChevronRight, ExternalLink, GraduationCap, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, ExternalLink, GraduationCap, Search, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { careerCatalog, defaultCareerPath, getCareerPath, type CareerPathId } from "@/data/careerCatalog";
 import HanaGameFrame from "@/components/HanaGameFrame";
 import LearningResources from "@/components/LearningResources";
 
 const universities = [
-  { name: "Harvard CS50", url: "https://cs50.harvard.edu/x/", curriculum: "https://cs50.harvard.edu/x/2026/" },
-  { name: "MIT OCW", url: "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/", curriculum: "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-fall-2011/" },
-  { name: "Stanford CS", url: "https://cs.stanford.edu/courses", curriculum: "https://cs.stanford.edu/courses" },
+  { name: "Harvard CS50x", curriculum: "https://cs50.harvard.edu/x/2026/" },
+  { name: "MIT 6.006 Algorithms", curriculum: "https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/" },
+  { name: "Stanford CS Courses", curriculum: "https://cs.stanford.edu/courses" },
 ] as const;
 const featuredPathIds: CareerPathId[] = ["computer-science", "software-engineering", "ai-ml", "data-science", "cybersecurity", "web-fullstack"];
+
+type CurriculumResult = { answer?: string; sources?: { title: string; url: string }[]; error?: string };
 
 export default function CareerPath() {
   const [, navigate] = useLocation();
@@ -22,7 +24,9 @@ export default function CareerPath() {
   const [stageIndex, setStageIndex] = useState(0);
   const [showAll, setShowAll] = useState(false);
   const [search, setSearch] = useState("");
-  const [university, setUniversity] = useState("Harvard CS50");
+  const [university, setUniversity] = useState("Harvard CS50x");
+  const [curriculumLoading, setCurriculumLoading] = useState(false);
+  const [curriculumResult, setCurriculumResult] = useState<CurriculumResult | null>(null);
   const [adjustPrompt, setAdjustPrompt] = useState(false);
   const path = getCareerPath(selectedPath);
   const stage = path.stages[Math.min(stageIndex, path.stages.length - 1)];
@@ -33,9 +37,20 @@ export default function CareerPath() {
     return needle ? pool.filter(p => `${p.title} ${p.shortTitle} ${p.description} ${p.roles.join(" ")}`.toLowerCase().includes(needle)) : pool;
   }, [showAll, search]);
   const selectedUniversity = universities.find(item => item.name === university) ?? universities[0];
-  const comparePrompt = encodeURIComponent(`Compare my ${path.title} Hana roadmap with the official ${selectedUniversity.name} curriculum at ${selectedUniversity.curriculum}. Browse the official curriculum, identify meaningful overlaps and gaps, and ask me whether I want Hana to adjust the roadmap. Do not automatically change anything until I say yes. Keep the explanation practical and not overwhelming.`);
 
-  const choose = (id: CareerPathId) => { setSelectedPath(id); setStageIndex(0); setAdjustPrompt(false); window.localStorage.setItem("hana-career-path", id); };
+  const choose = (id: CareerPathId) => { setSelectedPath(id); setStageIndex(0); setCurriculumResult(null); setAdjustPrompt(false); window.localStorage.setItem("hana-career-path", id); };
+
+  const checkCurriculum = async () => {
+    setCurriculumLoading(true); setCurriculumResult(null); setAdjustPrompt(false);
+    try {
+      const response = await fetch("/api/curriculum-check", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ careerPath: path.title, stage: stage.title, skills: stage.skills, curriculumUrl: selectedUniversity.curriculum, university: selectedUniversity.name }) });
+      const data = await response.json() as CurriculumResult;
+      if (!response.ok) throw new Error(data.error ?? "Curriculum check failed");
+      setCurriculumResult(data);
+    } catch (error) {
+      setCurriculumResult({ error: error instanceof Error ? error.message : "Curriculum check is unavailable right now." });
+    } finally { setCurriculumLoading(false); }
+  };
 
   return <HanaGameFrame title={`${path.title} · Roadmap`}>
     <div className="grid gap-5 lg:grid-cols-[1.02fr_.98fr]">
@@ -48,15 +63,19 @@ export default function CareerPath() {
       <section className="rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6">
         <div className="flex items-start justify-between"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-[#f1c77b]/75">World {stageIndex+1} of {path.stages.length}</p><h2 className="mt-2 font-display text-3xl font-semibold">{stage.world}</h2><p className="mt-1 text-lg font-semibold text-white/80">{stage.title}</p></div><span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-white/50">Next step</span></div>
         <p className="mt-5 text-sm leading-6 text-white/60">{stage.outcome}</p><div className="mt-4 flex flex-wrap gap-2">{stage.skills.map(skill=><span key={skill} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/70">{skill}</span>)}</div>
-        <div className="mt-6 grid gap-2">{path.stages.map((item,index)=><button key={item.world} onClick={()=>setStageIndex(index)} className={`flex items-center gap-3 rounded-2xl border p-3 text-left ${index===stageIndex?"border-[#f1c77b]/50 bg-[#f1c77b]/10":"border-white/10 bg-white/[.03]"}`}><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold">{String(index+1).padStart(2,"0")}</span><span className="min-w-0 flex-1"><span className="block text-xs uppercase tracking-[.12em] text-white/35">{item.world}</span><span className="mt-1 block text-sm font-semibold">{item.title}</span></span><ChevronRight className="h-4 w-4 text-white/30"/></button>)}</div>
+        <div className="mt-6 grid gap-2">{path.stages.map((item,index)=><button key={item.world} onClick={()=>{setStageIndex(index);setCurriculumResult(null)}} className={`flex items-center gap-3 rounded-2xl border p-3 text-left ${index===stageIndex?"border-[#f1c77b]/50 bg-[#f1c77b]/10":"border-white/10 bg-white/[.03]"}`}><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/10 text-xs font-bold">{String(index+1).padStart(2,"0")}</span><span className="min-w-0 flex-1"><span className="block text-xs uppercase tracking-[.12em] text-white/35">{item.world}</span><span className="mt-1 block text-sm font-semibold">{item.title}</span></span><ChevronRight className="h-4 w-4 text-white/30"/></button>)}</div>
         <button onClick={()=>navigate("/chat?prompt="+encodeURIComponent(`I'm at the ${stage.world} stage of ${path.title}. Help me understand this stage and what I should do first.`))} className="mt-5 inline-flex items-center gap-2 rounded-full bg-[#f1c77b] px-5 py-3 font-bold text-[#172630]">Ask Hana about this step <ArrowRight className="h-4 w-4"/></button>
       </section>
     </div>
 
-    <div className="mt-5"><LearningResources skill={firstSkill?.name ?? stage.skills[0] ?? path.title} /></div>
+    <div className="mt-5"><LearningResources skill={firstSkill?.name ?? stage.skills[0] ?? path.title} skills={stage.skills} /></div>
 
-    <section className="mt-5 rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6"><div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/40">Optional university curriculum check</p><h2 className="mt-2 font-display text-2xl font-semibold">Match Hana to your university — only when you choose.</h2><p className="mt-2 text-sm leading-6 text-white/50">Hana can browse the official curriculum, compare it with your route, and then ask whether you want an adjustment. Nothing changes automatically.</p></div><GraduationCap className="h-6 w-6 text-[#f1c77b]"/></div><div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center"><select value={university} onChange={e=>setUniversity(e.target.value)} className="rounded-2xl border border-white/10 bg-[#132434] px-4 py-3 text-sm text-white outline-none">{universities.map(u=><option key={u.name}>{u.name}</option>)}</select><a href={`/chat?prompt=${comparePrompt}`} className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 font-semibold text-[#172630]">Compare curriculum <ExternalLink className="h-4 w-4"/></a></div>{adjustPrompt&&<div className="mt-4 rounded-2xl border border-[#f1c77b]/30 bg-[#f1c77b]/10 p-4 text-sm"><p className="font-semibold">Would you like Hana to adjust your roadmap to match this curriculum?</p><div className="mt-3 flex gap-2"><button onClick={()=>navigate(`/chat?prompt=${encodeURIComponent(`I said yes to adjusting my ${path.title} roadmap to better match the official ${selectedUniversity.name} curriculum. Browse the official curriculum and propose the smallest useful adjustments. Do not overwhelm me; show only what changes and why.`)}`)} className="rounded-full bg-[#f1c77b] px-4 py-2 text-sm font-bold text-[#172630]">Yes, adjust</button><button onClick={()=>setAdjustPrompt(false)} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold">Not now</button></div></div>}
-      <button onClick={()=>setAdjustPrompt(true)} className="mt-3 text-sm font-semibold text-[#f1c77b]">I already compared it — ask me whether to adjust</button>
+    <section className="mt-5 rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6">
+      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between"><div className="max-w-2xl"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/40">Optional university curriculum check</p><h2 className="mt-2 font-display text-2xl font-semibold">Let Hana check the official curriculum — then ask you.</h2><p className="mt-2 text-sm leading-6 text-white/50">Choose a real curriculum page. Hana reads it with the API, compares it with this stage, and does not change your roadmap unless you explicitly choose adjustment.</p></div><GraduationCap className="h-6 w-6 text-[#f1c77b]"/></div>
+      <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto] md:items-center"><select value={university} onChange={e=>{setUniversity(e.target.value);setCurriculumResult(null)}} className="rounded-2xl border border-white/10 bg-[#132434] px-4 py-3 text-sm text-white outline-none">{universities.map(u=><option key={u.name}>{u.name}</option>)}</select><div className="flex flex-wrap gap-2"><a href={selectedUniversity.curriculum} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white px-4 py-3 text-sm font-semibold text-[#172630]">Open curriculum <ExternalLink className="h-4 w-4"/></a><button onClick={()=>void checkCurriculum()} disabled={curriculumLoading} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#f1c77b] px-5 py-3 font-bold text-[#172630]">{curriculumLoading?"Hana is checking…":"Check curriculum fit"}<Sparkles className="h-4 w-4"/></button></div></div>
+      {curriculumResult?.answer && <div className="mt-5 rounded-2xl border border-[#f1c77b]/30 bg-[#f1c77b]/10 p-4"><p className="text-sm leading-6 text-white/80 whitespace-pre-wrap">{curriculumResult.answer}</p>{curriculumResult.sources?.length ? <div className="mt-3 flex flex-wrap gap-2">{curriculumResult.sources.slice(0,4).map(source=><a key={source.url} href={source.url} target="_blank" rel="noreferrer" className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/65 underline">{source.title}</a>)}</div>:null}<p className="mt-4 text-sm font-semibold text-white">Would you like Hana to adjust this roadmap to better match {selectedUniversity.name}?</p><div className="mt-3 flex gap-2"><button onClick={()=>setAdjustPrompt(true)} className="rounded-full bg-[#f1c77b] px-4 py-2 text-sm font-bold text-[#172630]">Yes, show adjustments</button><button onClick={()=>setCurriculumResult(null)} className="rounded-full border border-white/10 px-4 py-2 text-sm font-semibold">Keep my roadmap</button></div></div>}
+      {curriculumResult?.error && <div className="mt-5 rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-white/60">{curriculumResult.error}<button onClick={()=>navigate(`/chat?prompt=${encodeURIComponent(`Please browse and compare my ${path.title} roadmap stage ${stage.title} with the official ${selectedUniversity.name} curriculum at ${selectedUniversity.curriculum}. Do not change anything automatically; ask me first.`)}`)} className="ml-2 font-semibold text-[#f1c77b] underline">Ask Hana instead</button></div>}
+      {adjustPrompt && <div className="mt-4 rounded-2xl border border-[#f1c77b]/30 bg-[#f1c77b]/10 p-4 text-sm"><p className="font-semibold">Great. Hana will propose only the smallest useful changes.</p><button onClick={()=>navigate(`/chat?prompt=${encodeURIComponent(`I chose to adjust my ${path.title} roadmap to better match the official ${selectedUniversity.name} curriculum at ${selectedUniversity.curriculum}. Review the curriculum and propose the smallest useful adjustments for the ${stage.title} stage. Show only what changes and why; do not overwhelm me.`)}`)} className="mt-3 rounded-full bg-[#f1c77b] px-4 py-2 text-sm font-bold text-[#172630]">Open adjustment plan in Hana</button></div>}
     </section>
 
     <section className="mt-5 grid gap-3 sm:grid-cols-3"><button onClick={()=>navigate("/projects")} className="rounded-2xl border border-white/10 bg-white/[.055] p-5 text-left transition hover:bg-white/[.09]"><p className="font-semibold">Projects</p><p className="mt-1 text-sm text-white/45">Turn this skill into something you can show.</p></button><button onClick={()=>navigate("/opportunities")} className="rounded-2xl border border-white/10 bg-white/[.055] p-5 text-left transition hover:bg-white/[.09]"><p className="font-semibold">Opportunities</p><p className="mt-1 text-sm text-white/45">Find programs without deadline-pressure design.</p></button><button onClick={()=>navigate("/research?query="+encodeURIComponent(path.title))} className="rounded-2xl border border-white/10 bg-white/[.055] p-5 text-left transition hover:bg-white/[.09]"><p className="font-semibold">Research field</p><p className="mt-1 text-sm text-white/45">Search current resources, videos and universities.</p></button></section>
