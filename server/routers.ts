@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { invokeLLM } from "./_core/llm";
+import { generateFreeHanaReply } from "./_core/freeLlm";
 import { queryWolframAlpha } from "./_core/wolfram";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, getLearnerSummary, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, createPortfolioDraft, updateLearnerSettings, updateMissionProgress, updateProjectCheckpoint, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
@@ -34,27 +35,34 @@ export const appRouter = router({
         `Learning missions: ${JSON.stringify(missions.slice(-6))}`,
         input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context.",
       ].join("\n");
-      const wolframTool = { type: "function" as const, function: { name: "wolfram_alpha", description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation. Do not use it for ordinary conversation, career coaching, or explanations that do not require computation.", parameters: { type: "object", properties: { query: { type: "string", description: "A concise natural-language computational query." } }, required: ["query"], additionalProperties: false } } };
-      const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You may call wolfram_alpha only when the learner asks for a calculation, mathematics, unit conversion, statistics, or computational knowledge. Do not call it for ordinary conversation. If Wolfram is unavailable, explain the limitation honestly and continue helpfully. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
+      const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
+      const wolframTool = { type: "function" as const, function: { name: "wolfram_alpha", description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation.", parameters: { type: "object", properties: { query: { type: "string", description: "A concise natural-language computational query." } }, required: ["query"], additionalProperties: false } } };
       try {
-        const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: input.message }] });
-        const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
-        let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
-        if (toolCall) {
-          let toolQuery = input.message;
-          try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
-          const computation = await queryWolframAlpha(toolQuery);
-          const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
-          const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt} Explain the following computation naturally, distinguish the computed result from your explanation, and keep the answer beginner-friendly. End with one clear next step when useful.\n\n${computationSummary}` }, { role: "user", content: input.message }] });
-          rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
+        let answer: string;
+        if (process.env.BUILT_IN_FORGE_API_KEY) {
+          const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: input.message }] });
+          const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
+          let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
+          if (toolCall) {
+            let toolQuery = input.message;
+            try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
+            const computation = await queryWolframAlpha(toolQuery);
+            const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
+            const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt}\n\n${computationSummary}` }, { role: "user", content: input.message }] });
+            rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
+          }
+          answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
+        } else if (process.env.GEMINI_API_KEY) {
+          answer = await generateFreeHanaReply(systemPrompt, input.message);
+        } else {
+          throw new Error("No Hana AI provider configured. Set GEMINI_API_KEY or BUILT_IN_FORGE_API_KEY.");
         }
-        const answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
         const conversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
         if (userId && conversationId) { await createChatMessage(userId, conversationId, "user", input.message); await createChatMessage(userId, conversationId, "assistant", answer); }
         return { answer, conversationId };
       } catch (error) {
         console.error("[Hana AI] chat failed", error);
-        return { answer: "I’m still here. My AI service is temporarily unavailable, but we can keep moving: tell me what you’re learning or where you’re stuck, and I’ll help you choose the next step.", conversationId: null };
+        return { answer: "Hana's AI connection isn't configured yet. Add a Gemini API key (free tier) or the existing Forge key, then restart Hana. Your roadmap and learning features can still be used meanwhile.", conversationId: null };
       }
     }),
   }),
