@@ -6,12 +6,10 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import "./index.css";
+import "./layout-hardening.css";
 
 const queryClient = new QueryClient();
 
-// Authentication is optional for the public demo. A protected feature may still
-// request login itself, but an unrelated API error must never hijack the learner
-// into an OAuth flow before they can explore Hana.
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
@@ -26,40 +24,27 @@ const trpcClient = trpc.createClient({
             const token = pair?.trim().slice(prefix.length);
             if (token) return { Authorization: `Bearer ${token}` };
           }
-        } catch {
-          // sessionStorage can be unavailable in restricted browsers.
-        }
+        } catch {}
         return {};
       },
-      fetch(input, init) {
-        return globalThis.fetch(input, {
-          ...(init ?? {}),
-          credentials: "include",
-        });
-      },
+      fetch(input, init) { return globalThis.fetch(input, { ...(init ?? {}), credentials: "include" }); },
     }),
   ],
 });
 
-// Keep demo dates truthful. This also protects against stale copy in older
-// dashboard components without requiring a build-time date replacement.
 const refreshVisibleDates = () => {
   if (typeof document === "undefined") return;
   const formatter = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric" });
   const today = formatter.format(new Date());
   const stale = document.querySelectorAll<HTMLElement>("p,span,h1,h2,h3");
   stale.forEach(node => {
-    if (/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}$/.test(node.textContent?.trim() ?? "")) {
-      node.textContent = today;
-    }
+    if (/^(Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}$/.test(node.textContent?.trim() ?? "")) node.textContent = today;
   });
 };
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}><App /></QueryClientProvider>
   </trpc.Provider>
 );
 
