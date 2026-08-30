@@ -1,0 +1,7 @@
+# Critical application paths should receive an owner review before merge when branch rules enforce CODEOWNERS.
+* @ismatfida1
+/.github/ @ismatfida1
+/server/ @ismatfida1
+/client/ @ismatfida1
+/package.json @ismatfida1
+/pnpm-lock.yaml @ismatfida1
