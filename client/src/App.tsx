@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Link, Route, Switch, useLocation } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -37,12 +37,6 @@ function Router() {
   </Switch>;
 }
 
-function BackButton() {
-  const [location] = useLocation();
-  if (location === "/") return null;
-  return <Link href="/" className="fixed bottom-4 left-4 z-[80] inline-flex items-center gap-2 rounded-full border border-white/15 bg-[#101d2b]/90 px-4 py-2 text-xs font-bold text-[#f1c77b] shadow-lg backdrop-blur-xl transition hover:bg-[#172a3b]" aria-label="Back to Hana adventure">← Back to Hana</Link>;
-}
-
 function DynamicDateFix() {
   const [location] = useLocation();
   useEffect(() => {
@@ -66,5 +60,5 @@ function DynamicDateFix() {
 }
 
 export default function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster/><Router/><BackButton/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster/><Router/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
