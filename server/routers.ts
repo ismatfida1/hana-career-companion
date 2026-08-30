@@ -21,12 +21,7 @@ export const appRouter = router({
   }),
   opportunities: router({ list: publicProcedure.query(() => listOpportunities()) }),
   ai: router({
-    // Computation is a public demo capability; no account is needed to ask Hana
-    // for a calculation and the server never exposes the Wolfram App ID.
     compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(({ input }) => queryWolframAlpha(input.query)),
-    // Chat is intentionally public for the hackathon/demo flow. Authenticated
-    // learners get persistence and memory; guests get the same core intelligence
-    // without being blocked by OAuth configuration.
     chat: publicProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
       const [profile, memoryItems, projects, missions] = userId
@@ -79,7 +74,7 @@ export const appRouter = router({
     deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
     updateMission: protectedProcedure.input(z.object({ missionId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentStep: z.string().min(1).max(64), state: z.enum(["not-started", "in-progress", "completed"]) })).mutation(({ ctx, input }) => updateMissionProgress(ctx.user.id, input.missionId, input.progress, input.currentStep, input.state)),
     saveOpportunity: protectedProcedure.input(z.object({ opportunityId: z.number().int().positive(), status: z.enum(["saved", "planning", "applied", "accepted", "rejected"]) })).mutation(({ ctx, input }) => upsertSavedOpportunity(ctx.user.id, input.opportunityId, input.status)),
-    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.projectId, input.progress, input.currentCheckpoint, input.status)),
+    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
     savePortfolioDraft: protectedProcedure.input(z.object({ projectId: z.number().int().positive().optional(), kind: z.enum(["readme", "portfolio", "resume"]), content: z.string().min(1).max(10000) })).mutation(({ ctx, input }) => createPortfolioDraft(ctx.user.id, input.projectId, input.kind, input.content)),
     updateSettings: protectedProcedure.input(z.object({ hanaPersonality: z.string().max(64).optional(), preferredExplanationStyle: z.string().max(64).optional(), notificationsEnabled: z.boolean().optional(), voiceEnabled: z.boolean().optional(), memoryEnabled: z.boolean().optional() })).mutation(({ ctx, input }) => updateLearnerSettings(ctx.user.id, input)),
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
