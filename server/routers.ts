@@ -5,6 +5,7 @@ import { invokeLLM } from "./_core/llm";
 import { invokeOpenAIHana } from "./_core/openai";
 import { generateFreeHanaReply } from "./_core/freeLlm";
 import { queryWolframAlpha } from "./_core/wolfram";
+import { ENV } from "./_core/env";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { createChatConversation, createChatMessage, deleteMemoryItems, getLearnerProfile, getLearnerSettings, getLearnerSummary, listAchievements, listChatConversations, listChatMessages, listLearnerMissions, listLearnerProjects, listMemoryItems, listOpportunities, listPortfolioDrafts, listRoadmapStates, listSavedOpportunities, createPortfolioDraft, updateLearnerSettings, updateMissionProgress, updateProjectCheckpoint, upsertLearnerProfile, upsertSavedOpportunity } from "./db";
 import { z } from "zod";
@@ -33,7 +34,7 @@ export const appRouter = router({
         let provider: "openai" | "forge" | "gemini" | "local" = "local";
         let sources: Array<{ title: string; url: string }> = [];
 
-        if (process.env.OPENAI_API_KEY) {
+        if (ENV.openaiApiKey) {
           let enrichedPrompt = systemPrompt;
           const lower = input.message.toLowerCase();
           const likelyComputational = /\b(calculate|solve|convert|equation|percentage|percent|average|mean|median|probability|integral|derivative|factorial|square root|sqrt|kg|km|miles|celsius|fahrenheit)\b/.test(lower);
@@ -53,12 +54,12 @@ export const appRouter = router({
           sources = response.sources;
           provider = "openai";
           if (sources.length > 0) answer += `\n\n**Sources**\n${sources.slice(0, 5).map(source => `- [${source.title}](${source.url})`).join("\n")}`;
-        } else if (process.env.BUILT_IN_FORGE_API_KEY) {
+        } else if (ENV.forgeApiKey) {
           const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
           const raw = response.choices[0]?.message?.content ?? "";
           answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
           provider = "forge";
-        } else if (process.env.GEMINI_API_KEY) {
+        } else if (ENV.geminiApiKey) {
           answer = await generateFreeHanaReply(systemPrompt, input.message, history);
           provider = "gemini";
         } else {
@@ -70,13 +71,13 @@ export const appRouter = router({
       } catch (error) {
         console.error("[Hana AI] primary provider failed; trying fallbacks", error);
         try {
-          if (process.env.GEMINI_API_KEY) {
+          if (ENV.geminiApiKey) {
             const answer = await generateFreeHanaReply(systemPrompt, input.message, history);
             return { answer, conversationId: null, provider: "gemini" as const, sources: [] };
           }
         } catch (fallbackError) { console.error("[Hana AI] Gemini fallback failed", fallbackError); }
         try {
-          if (process.env.BUILT_IN_FORGE_API_KEY) {
+          if (ENV.forgeApiKey) {
             const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
             const raw = response.choices[0]?.message?.content ?? "";
             const answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw;
@@ -91,7 +92,7 @@ export const appRouter = router({
     profile: protectedProcedure.query(({ ctx }) => getLearnerProfile(ctx.user.id)), summary: protectedProcedure.query(({ ctx }) => getLearnerSummary(ctx.user.id)), missions: protectedProcedure.query(({ ctx }) => listLearnerMissions(ctx.user.id)), projects: protectedProcedure.query(({ ctx }) => listLearnerProjects(ctx.user.id)), savedOpportunities: protectedProcedure.query(({ ctx }) => listSavedOpportunities(ctx.user.id)), memory: protectedProcedure.query(({ ctx }) => listMemoryItems(ctx.user.id)), roadmap: protectedProcedure.query(({ ctx }) => listRoadmapStates(ctx.user.id)), conversations: protectedProcedure.query(({ ctx }) => listChatConversations(ctx.user.id)), messages: protectedProcedure.query(({ ctx }) => listChatMessages(ctx.user.id)), achievements: protectedProcedure.query(({ ctx }) => listAchievements(ctx.user.id)), settings: protectedProcedure.query(({ ctx }) => getLearnerSettings(ctx.user.id)), portfolioDrafts: protectedProcedure.query(({ ctx }) => listPortfolioDrafts(ctx.user.id)), deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
     updateMission: protectedProcedure.input(z.object({ missionId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentStep: z.string().min(1).max(64), state: z.enum(["not-started", "in-progress", "completed"]) })).mutation(({ ctx, input }) => updateMissionProgress(ctx.user.id, input.missionId, input.progress, input.currentStep, input.state)),
     saveOpportunity: protectedProcedure.input(z.object({ opportunityId: z.number().int().positive(), status: z.enum(["saved", "planning", "applied", "accepted", "rejected"]) })).mutation(({ ctx, input }) => upsertSavedOpportunity(ctx.user.id, input.opportunityId, input.status)),
-    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
+    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.projectId, input.progress, input.currentCheckpoint, input.status)),
     savePortfolioDraft: protectedProcedure.input(z.object({ projectId: z.number().int().positive().optional(), kind: z.enum(["readme", "portfolio", "resume"]), content: z.string().min(1).max(10000) })).mutation(({ ctx, input }) => createPortfolioDraft(ctx.user.id, input.projectId, input.kind, input.content)),
     updateSettings: protectedProcedure.input(z.object({ hanaPersonality: z.string().max(64).optional(), preferredExplanationStyle: z.string().max(64).optional(), notificationsEnabled: z.boolean().optional(), voiceEnabled: z.boolean().optional(), memoryEnabled: z.boolean().optional() })).mutation(({ ctx, input }) => updateLearnerSettings(ctx.user.id, input)),
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
