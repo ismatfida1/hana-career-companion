@@ -21,28 +21,34 @@ type OpenAIResponse = {
 };
 
 const OPENAI_URL = "https://api.openai.com/v1/responses";
+const WEB_INTENT = /\b(search|browse|web|latest|current|today|recent|news|find|look up|research|sources?|links?|resource|resources|course|courses|youtube|university|universities|scholarship|opportunit(?:y|ies)|compare|best|2026)\b/i;
 
 export async function invokeOpenAIHana(params: {
   systemPrompt: string;
   history: HanaMessage[];
   message: string;
   enableWebSearch?: boolean;
+  forceWebSearch?: boolean;
   model?: string;
 }) {
   if (!ENV.openaiApiKey) throw new Error("OPENAI_API_KEY is not configured");
 
+  const shouldUseWebSearch = params.enableWebSearch !== false;
+  const shouldForceWebSearch = params.forceWebSearch ?? WEB_INTENT.test(params.message);
+
   const body: Record<string, unknown> = {
     model: params.model ?? ENV.openaiModel,
-    instructions: params.systemPrompt,
+    instructions: `${params.systemPrompt}\n\nWhen web research is requested or clearly useful, actually use web search before answering. Do not substitute a generic roadmap from memory. For web-researched answers, cite the sources you used and provide direct links where appropriate.`,
     input: [
       ...params.history.slice(-10).map(item => ({ role: item.role, content: item.content })),
       { role: "user", content: params.message },
     ],
-    max_output_tokens: 1200,
+    max_output_tokens: 1600,
   };
 
-  if (params.enableWebSearch !== false) {
+  if (shouldUseWebSearch) {
     body.tools = [{ type: "web_search" }];
+    if (shouldForceWebSearch) body.tool_choice = "required";
   }
 
   const response = await fetch(OPENAI_URL, {
