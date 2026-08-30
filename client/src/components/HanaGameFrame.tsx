@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 
 const pageWorlds = {
   "/roadmap": { world: "Code Forge", image: "/assets/worlds/code-forge.svg" },
+  "/mission": { world: "Code Forge", image: "/assets/worlds/code-forge.svg" },
   "/projects": { world: "Webwilds", image: "/assets/worlds/webwilds.svg" },
   "/opportunities": { world: "Beacon Summit", image: "/assets/worlds/beacon-summit.svg" },
   "/research": { world: "Skyforge", image: "/assets/worlds/skyforge.svg" },
@@ -15,31 +16,42 @@ export default function HanaGameFrame({ children, title }: { children: ReactNode
   const baseLocation = location.split("?")[0];
   const world = pageWorlds[baseLocation as keyof typeof pageWorlds] ?? pageWorlds["/roadmap"];
   const goBack = () => {
-    if (typeof window !== "undefined" && window.history.length > 1) window.history.back();
-    else window.location.href = "/";
+    if (typeof window === "undefined") return;
+    if (window.history.length > 1) window.history.back();
+    else window.location.assign("/");
   };
 
-  return <main className="min-h-screen overflow-x-hidden bg-[#101d2b] text-[#fffaf4]">
-    <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(83,139,132,.22),transparent_30%),radial-gradient(circle_at_15%_80%,rgba(225,145,117,.13),transparent_28%)]" />
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101d2b]/85 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-7 lg:px-10">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={goBack} aria-label="Go back" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 active:scale-95">
-            <ArrowLeft className="h-4 w-4" />Back
-          </button>
-          <Link href="/" className="hidden items-center gap-2 px-2 font-display text-lg font-bold sm:flex"><Sparkles className="h-4 w-4 text-[#f1c77b]" />HANA</Link>
+  return (
+    <main className="relative min-h-screen overflow-x-hidden bg-[#101d2b] text-[#fffaf4] [isolation:isolate]">
+      <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_80%_10%,rgba(83,139,132,.22),transparent_30%),radial-gradient(circle_at_15%_80%,rgba(225,145,117,.13),transparent_28%)]" />
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-[#101d2b]/90 backdrop-blur-xl">
+        <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-7 lg:px-10">
+          <div className="flex shrink-0 items-center gap-2">
+            <button type="button" onClick={goBack} aria-label="Go back" className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 active:scale-95">
+              <ArrowLeft className="h-4 w-4" />Back
+            </button>
+            <Link href="/" className="hidden items-center gap-2 px-2 font-display text-lg font-bold sm:flex"><Sparkles className="h-4 w-4 text-[#f1c77b]" />HANA</Link>
+          </div>
+          <div className="min-w-0 flex-1 text-center"><p className="truncate text-[10px] font-bold uppercase tracking-[.18em] text-white/40">{world.world}</p><h1 className="truncate font-display text-sm font-semibold sm:text-base">{title}</h1></div>
+          <Link href="/" aria-label="Home" className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 active:scale-95"><Home className="h-4 w-4" /><span className="hidden sm:inline">Home</span></Link>
         </div>
-        <div className="min-w-0 text-center"><p className="text-[10px] font-bold uppercase tracking-[.18em] text-white/40">{world.world}</p><h1 className="truncate font-display text-sm font-semibold sm:text-base">{title}</h1></div>
-        <Link href="/" className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-sm font-semibold transition hover:bg-white/10 active:scale-95"><Home className="h-4 w-4" /><span className="hidden sm:inline">Home</span></Link>
+      </header>
+
+      <div className="relative mx-auto w-full max-w-7xl px-4 py-5 sm:px-7 sm:py-6 lg:px-10">
+        <section className="relative isolate mb-5 min-h-[170px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[.04] shadow-2xl sm:min-h-[220px]" aria-label={`${world.world} world scene`}>
+          <img src={world.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-contain object-center p-2 opacity-35 sm:p-4" />
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#101d2b]/95 via-[#101d2b]/60 to-[#101d2b]/80" />
+          <div className="relative z-10 flex min-h-[170px] items-end px-5 py-6 sm:min-h-[220px] sm:px-7 sm:py-7">
+            <div className="min-w-0 max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-[.16em] text-[#f1c77b]/75">Hana adventure · {world.world}</p>
+              <h2 className="mt-2 break-words font-display text-2xl font-semibold tracking-[-.04em] sm:text-4xl">{title}</h2>
+            </div>
+          </div>
+        </section>
+        <div className="relative z-10 min-w-0 space-y-5 [&_*]:min-w-0">
+          {children}
+        </div>
       </div>
-    </header>
-    <div className="relative mx-auto max-w-7xl px-4 py-6 sm:px-7 lg:px-10">
-      <div className="relative mb-5 min-h-[180px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[.04] shadow-2xl sm:min-h-[220px]">
-        <img src={world.image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-contain object-center p-3 opacity-30 sm:p-5" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#101d2b]/95 via-[#101d2b]/55 to-[#101d2b]/75" />
-        <div className="relative flex min-h-[180px] items-end px-5 py-7 sm:min-h-[220px] sm:px-7"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-[#f1c77b]/75">Hana adventure · {world.world}</p><h2 className="mt-2 max-w-3xl font-display text-3xl font-semibold tracking-[-.04em] sm:text-4xl">{title}</h2></div></div>
-      </div>
-      {children}
-    </div>
-  </main>;
+    </main>
+  );
 }
