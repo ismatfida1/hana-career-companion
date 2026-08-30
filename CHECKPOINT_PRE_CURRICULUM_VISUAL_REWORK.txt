@@ -1,0 +1,12 @@
+Submission safety checkpoint
+
+The previous working version is preserved on branch: checkpoint-before-learning-curriculum-ui
+
+If the curriculum/learning/visual/API rework causes a regression, use that branch as the fallback submission version.
+
+Current main changes include:
+- official curriculum destinations instead of university homepages
+- optional live curriculum matching with explicit user approval before adjustment
+- per-step learning kit with university, YouTube, book, documentation, online/interactive resources and alternatives
+- Hana API-backed chat/research flow
+- fantasy world visuals preserved on inner pages with contain sizing to avoid artwork clipping
