@@ -11,6 +11,7 @@ import { serveStatic, setupVite } from "./vite";
 import { searchField } from "./research";
 import { generateFreeHanaReply } from "./freeLlm";
 import { invokeOpenAIHana } from "./openai";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => { const server = net.createServer(); server.listen(port, () => server.close(() => resolve(true))); server.on("error", () => resolve(false)); });
@@ -22,10 +23,13 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 const localHana = (message: string) => {
   const text = message.toLowerCase();
-  if (text.includes("ai engineering") || text.includes("ai engineer")) return "Let's make AI engineering concrete. Your next step is Python + ML foundations. Start with one short lesson, then build a tiny model or API example. After that, Hana can guide you into LLM APIs, RAG, evaluation, and AI product engineering. You do not need the whole roadmap today.";
-  if (text.includes("calculate") || /\d+\s*[+\-*/%]\s*\d+/.test(text)) return "I can help explain the calculation step by step. For a verified computation, use the Wolfram option when its App ID is configured.";
-  if (text.includes("next") || text.includes("learn")) return "Your next step should be small: choose one concept, spend about 20–30 minutes learning it, then make a tiny example. Ask me what concept to pick and I'll narrow it down.";
-  return "I'm Hana. Tell me what you're exploring or building and I'll turn it into one clear next step—not a giant checklist.";
+  if (text.includes("hello") || text.includes("hi") || text.includes("hey")) return "Hey! I'm Hana 🌿 What are you working on or curious about today?";
+  if (text.includes("ai engineering") || text.includes("ai engineer")) return "AI engineering is about building useful software with AI models. A practical starting sequence is Python → APIs → model basics → retrieval/RAG → evaluation → AI-powered projects. If you tell me whether you're starting from zero or already coding, I can choose the single best first step.";
+  if (text.includes("university") || text.includes("degree") || text.includes("college")) return "I can help compare degrees and universities based on your goals, but I'd want your target field and country before recommending specific options.";
+  if (text.includes("project") || text.includes("build")) return "Let's make it concrete. Tell me what you want to build and what tools you already know; I'll suggest one project that is realistic for your current level.";
+  if (text.includes("calculate") || /\d+\s*[+\-*/%]\s*\d+/.test(text)) return "I can explain the calculation step by step. If a precise computation is needed and Wolfram is configured, Hana can use that as a specialist tool.";
+  if (text.includes("next") || text.includes("learn")) return "Let's keep this small: tell me the skill or field you're working on, and I'll pick one useful next action instead of giving you a giant checklist.";
+  return `I understand you're asking about “${message.slice(0, 120)}”. I don't want to give you a canned answer. Tell me one detail about what you're trying to achieve, and I'll make the answer specific to you.`;
 };
 
 async function startServer() {
@@ -49,7 +53,7 @@ async function startServer() {
     const rawHistory = Array.isArray(req.body?.history) ? req.body.history : [];
     const history = rawHistory.filter((item: any) => (item?.role === "user" || item?.role === "model" || item?.role === "assistant") && typeof item?.text === "string").slice(-10);
     const selectedPath = typeof req.body?.selectedPath === "string" ? req.body.selectedPath : "";
-    const system = `You are Hana, a warm, intelligent career companion. Answer the user's actual question naturally and specifically. Do not repeat canned career advice when the question changes. You can explain concepts, brainstorm, debug code, compare choices, discuss university and career decisions, create learning plans, review projects, and help with practical problems. When current information, links, courses, universities, scholarships, opportunities, dates, news, or niche facts are requested, use web search and cite sources. Never pretend you searched when you did not. Keep the learner experience calm: avoid scores, guilt, countdowns, and giant checklists. If a full plan is requested, give the useful structure but clearly highlight only one next action. The learner's selected path is ${selectedPath || "not selected"}.`;
+    const system = `You are Hana, a genuinely conversational AI career and learning companion. Answer the user's actual message first. Never reuse a canned answer merely because the topic is career-related. Adapt to the user's wording, intent, level, and previous messages. You may explain concepts, brainstorm, debug code, reason through decisions, review projects, create plans, compare options, and have normal conversation. If the user asks for current information, links, courses, universities, scholarships, opportunities, dates, news, or niche facts, research the web before answering and cite useful sources. If the user asks a simple conceptual question, answer directly without unnecessary browsing. Never claim to have searched unless you actually did. Keep answers clear and useful rather than robotic. Follow the principle 'hide the mountain, show the next step': when a plan is useful, give the structure but emphasize one immediate action. Avoid scores, guilt, countdowns, or giant checklists. The learner's selected career path is ${selectedPath || "not selected"}.`;
 
     if (ENV.openaiApiKey) {
       try {
@@ -58,6 +62,7 @@ async function startServer() {
           message,
           history: history.map((item: any) => ({ role: item.role === "model" ? "assistant" : item.role, content: item.text })),
           enableWebSearch: true,
+          forceWebSearch: /\b(latest|current|today|recent|news|search|browse|look up|research|find|links?|sources?|courses?|youtube|universit(?:y|ies)|scholarships?|opportunit(?:y|ies)|2026)\b/i.test(message),
         });
         return res.json({ answer: result.answer, sources: result.sources, provider: "openai", model: result.model });
       } catch (error) {
