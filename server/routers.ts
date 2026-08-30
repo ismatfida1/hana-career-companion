@@ -9,38 +9,29 @@ import { createChatConversation, createChatMessage, deleteMemoryItems, getLearne
 import { z } from "zod";
 
 const careerPathSchema = z.enum(["computer-science", "software-engineering", "ai-ml", "data-science", "cybersecurity", "web-fullstack", "mobile", "cloud-devops", "systems-embedded", "game-development", "ui-ux-product", "qa-testing"]);
+const chatHistorySchema = z.array(z.object({ role: z.enum(["user", "model"]), text: z.string().max(4000) })).max(12).default([]);
 
 export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
-    logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
-      return { success: true } as const;
-    }),
+    logout: publicProcedure.mutation(({ ctx }) => { const cookieOptions = getSessionCookieOptions(ctx.req); ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 }); return { success: true } as const; }),
   }),
   opportunities: router({ list: publicProcedure.query(() => listOpportunities()) }),
   ai: router({
     compute: publicProcedure.input(z.object({ query: z.string().trim().min(1).max(500) })).query(({ input }) => queryWolframAlpha(input.query)),
-    chat: publicProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true) })).mutation(async ({ ctx, input }) => {
+    chat: publicProcedure.input(z.object({ message: z.string().trim().min(1).max(4000), conversationId: z.number().int().positive().optional(), memoryEnabled: z.boolean().default(true), history: chatHistorySchema })).mutation(async ({ ctx, input }) => {
       const userId = ctx.user?.id;
-      const [profile, memoryItems, projects, missions] = userId
-        ? await Promise.all([getLearnerProfile(userId), input.memoryEnabled ? listMemoryItems(userId) : Promise.resolve([]), listLearnerProjects(userId), listLearnerMissions(userId)])
-        : [null, [], [], []];
+      const [profile, memoryItems, projects, missions] = userId ? await Promise.all([getLearnerProfile(userId), input.memoryEnabled ? listMemoryItems(userId) : Promise.resolve([]), listLearnerProjects(userId), listLearnerMissions(userId)]) : [null, [], [], []];
       const allowedMemory = memoryItems.filter(item => !item.isDeleted).slice(-12);
-      const context = [
-        `Learner profile: ${JSON.stringify(profile ?? { careerGoal: "Software engineer", careerPath: "computer-science", experienceLevel: "Beginner", learningStyle: "Examples first" })}`,
-        `Active projects: ${JSON.stringify(projects.slice(-6))}`,
-        `Learning missions: ${JSON.stringify(missions.slice(-6))}`,
-        input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context.",
-      ].join("\n");
+      const context = [`Learner profile: ${JSON.stringify(profile ?? { careerGoal: "Software engineer", careerPath: "computer-science", experienceLevel: "Beginner", learningStyle: "Examples first" })}`, `Active projects: ${JSON.stringify(projects.slice(-6))}`, `Learning missions: ${JSON.stringify(missions.slice(-6))}`, input.memoryEnabled ? `Allowed saved memory: ${JSON.stringify(allowedMemory)}` : "Saved memory is disabled; do not infer or retain personal context."].join("\n");
       const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
       const wolframTool = { type: "function" as const, function: { name: "wolfram_alpha", description: "Use Wolfram|Alpha only for calculations, mathematics, unit conversions, statistics, or computational knowledge that benefits from a verified computation.", parameters: { type: "object", properties: { query: { type: "string", description: "A concise natural-language computational query." } }, required: ["query"], additionalProperties: false } } };
+      const history = input.history.slice(-10);
       try {
         let answer: string;
         if (process.env.BUILT_IN_FORGE_API_KEY) {
-          const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: input.message }] });
+          const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, tools: [wolframTool], toolChoice: "auto", messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
           const toolCall = response.choices[0]?.message?.tool_calls?.find(call => call.function.name === "wolfram_alpha");
           let rawContent = response.choices[0]?.message?.content ?? "I’m here with you. Let’s choose one small next step together.";
           if (toolCall) {
@@ -48,38 +39,27 @@ export const appRouter = router({
             try { const parsed = JSON.parse(toolCall.function.arguments) as { query?: unknown }; if (typeof parsed.query === "string" && parsed.query.trim()) toolQuery = parsed.query; } catch { console.warn("[Wolfram] Hana returned invalid tool arguments"); }
             const computation = await queryWolframAlpha(toolQuery);
             const computationSummary = computation.status === "ok" ? `Wolfram|Alpha result for ${computation.query}: ${computation.result}` : `Wolfram|Alpha could not compute this request. Status: ${computation.status}. Message: ${computation.message}`;
-            const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt}\n\n${computationSummary}` }, { role: "user", content: input.message }] });
+            const followUp = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: `${systemPrompt}\n\n${computationSummary}` }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
             rawContent = followUp.choices[0]?.message?.content ?? computation.result ?? computation.message;
           }
           answer = Array.isArray(rawContent) ? rawContent.filter(part => part.type === "text").map(part => part.text).join("\n") : rawContent;
         } else if (process.env.GEMINI_API_KEY) {
-          answer = await generateFreeHanaReply(systemPrompt, input.message);
+          answer = await generateFreeHanaReply(systemPrompt, input.message, history);
         } else {
-          throw new Error("No Hana AI provider configured. Set GEMINI_API_KEY or BUILT_IN_FORGE_API_KEY.");
+          answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science");
         }
-        const conversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
-        if (userId && conversationId) { await createChatMessage(userId, conversationId, "user", input.message); await createChatMessage(userId, conversationId, "assistant", answer); }
-        return { answer, conversationId };
+        const savedConversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
+        if (userId && savedConversationId) { await createChatMessage(userId, savedConversationId, "user", input.message); await createChatMessage(userId, savedConversationId, "assistant", answer); }
+        return { answer, conversationId: savedConversationId, provider: process.env.BUILT_IN_FORGE_API_KEY ? "forge" : process.env.GEMINI_API_KEY ? "gemini" : "local" };
       } catch (error) {
-        console.error("[Hana AI] chat failed", error);
-        return { answer: "Hana's AI connection isn't configured yet. Add a Gemini API key (free tier) or the existing Forge key, then restart Hana. Your roadmap and learning features can still be used meanwhile.", conversationId: null };
+        console.error("[Hana AI] provider failed; using local fallback", error);
+        const answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science");
+        return { answer, conversationId: null, provider: "local" as const };
       }
     }),
   }),
   learner: router({
-    profile: protectedProcedure.query(({ ctx }) => getLearnerProfile(ctx.user.id)),
-    summary: protectedProcedure.query(({ ctx }) => getLearnerSummary(ctx.user.id)),
-    missions: protectedProcedure.query(({ ctx }) => listLearnerMissions(ctx.user.id)),
-    projects: protectedProcedure.query(({ ctx }) => listLearnerProjects(ctx.user.id)),
-    savedOpportunities: protectedProcedure.query(({ ctx }) => listSavedOpportunities(ctx.user.id)),
-    memory: protectedProcedure.query(({ ctx }) => listMemoryItems(ctx.user.id)),
-    roadmap: protectedProcedure.query(({ ctx }) => listRoadmapStates(ctx.user.id)),
-    conversations: protectedProcedure.query(({ ctx }) => listChatConversations(ctx.user.id)),
-    messages: protectedProcedure.query(({ ctx }) => listChatMessages(ctx.user.id)),
-    achievements: protectedProcedure.query(({ ctx }) => listAchievements(ctx.user.id)),
-    settings: protectedProcedure.query(({ ctx }) => getLearnerSettings(ctx.user.id)),
-    portfolioDrafts: protectedProcedure.query(({ ctx }) => listPortfolioDrafts(ctx.user.id)),
-    deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
+    profile: protectedProcedure.query(({ ctx }) => getLearnerProfile(ctx.user.id)), summary: protectedProcedure.query(({ ctx }) => getLearnerSummary(ctx.user.id)), missions: protectedProcedure.query(({ ctx }) => listLearnerMissions(ctx.user.id)), projects: protectedProcedure.query(({ ctx }) => listLearnerProjects(ctx.user.id)), savedOpportunities: protectedProcedure.query(({ ctx }) => listSavedOpportunities(ctx.user.id)), memory: protectedProcedure.query(({ ctx }) => listMemoryItems(ctx.user.id)), roadmap: protectedProcedure.query(({ ctx }) => listRoadmapStates(ctx.user.id)), conversations: protectedProcedure.query(({ ctx }) => listChatConversations(ctx.user.id)), messages: protectedProcedure.query(({ ctx }) => listChatMessages(ctx.user.id)), achievements: protectedProcedure.query(({ ctx }) => listAchievements(ctx.user.id)), settings: protectedProcedure.query(({ ctx }) => getLearnerSettings(ctx.user.id)), portfolioDrafts: protectedProcedure.query(({ ctx }) => listPortfolioDrafts(ctx.user.id)), deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
     updateMission: protectedProcedure.input(z.object({ missionId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentStep: z.string().min(1).max(64), state: z.enum(["not-started", "in-progress", "completed"]) })).mutation(({ ctx, input }) => updateMissionProgress(ctx.user.id, input.missionId, input.progress, input.currentStep, input.state)),
     saveOpportunity: protectedProcedure.input(z.object({ opportunityId: z.number().int().positive(), status: z.enum(["saved", "planning", "applied", "accepted", "rejected"]) })).mutation(({ ctx, input }) => upsertSavedOpportunity(ctx.user.id, input.opportunityId, input.status)),
     updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
@@ -89,4 +69,10 @@ export const appRouter = router({
   }),
 });
 
-export type AppRouter = typeof appRouter;
+function buildLocalHanaReply(message: string, careerPath: string) {
+  const lower = message.toLowerCase();
+  if (lower.includes("plan") || lower.includes("roadmap") || lower.includes("start")) return `Absolutely. For ${careerPath}, let's keep it simple: first choose one foundation skill, spend 20–30 minutes learning it, then build one tiny thing with it. Tell me what you already know and I'll help you choose the next step.`;
+  if (lower.includes("stuck") || lower.includes("confused") || lower.includes("don't know")) return "You're not behind. Let's shrink the problem. Tell me the exact concept or task that feels confusing, and I'll break it into one small step.";
+  if (lower.includes("project")) return "Let's make the next step practical. Pick a tiny project that uses the skill you're learning, and we'll turn it into 2–4 small checkpoints rather than one huge assignment.";
+  return "I'm Hana. I can help you choose your next learning step, explain a concept, plan a small project, or explore a career direction. What are you working on right now?";
+}
