@@ -18,8 +18,16 @@ export default function HanaGameFrame({ children, title }: { children: ReactNode
 
   const goBack = () => {
     if (typeof window === "undefined") return;
-    if (window.history.length > 1) window.history.back();
-    else window.location.assign("/");
+    const sameOriginReferrer = document.referrer ? document.referrer.startsWith(window.location.origin) : false;
+    if (sameOriginReferrer && window.history.length > 1) {
+      window.history.back();
+      return;
+    }
+    if (baseLocation === "/roadmap") {
+      window.location.assign("/");
+      return;
+    }
+    window.location.assign("/roadmap");
   };
 
   return (
