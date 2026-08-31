@@ -1,33 +1,182 @@
-/* HANA shared layout guardrails: one positioning context, no route crossover. */
-.hana-game-frame{position:relative;isolation:isolate;width:100%;min-height:100svh;max-width:100%;overflow-x:hidden;box-sizing:border-box}
+/* Shared Hana world frame. The artwork owns the page backdrop; content stays in normal flow. */
+.hana-game-frame{
+  position:relative;
+  isolation:isolate;
+  width:100%;
+  min-height:100svh;
+  max-width:100%;
+  overflow-x:clip;
+  box-sizing:border-box;
+  color:#fffaf4;
+  background:#07131d;
+}
 .hana-game-frame *,.hana-game-frame *::before,.hana-game-frame *::after{box-sizing:border-box}
-.hana-game-frame .hana-game-nav{position:sticky;top:0;z-index:100;width:100%;min-width:0;max-width:100%}
-.hana-game-frame .hana-game-nav>div{width:100%;min-width:0;max-width:100%}
-.hana-game-frame .hana-game-nav button,.hana-game-frame .hana-game-nav a{min-width:0;max-width:100%;flex:0 0 auto}
-.hana-game-frame .hana-game-world{position:relative;isolation:isolate;width:100%;min-width:0;max-width:100%;overflow:hidden}
-.hana-game-frame .hana-game-world-art{position:absolute;inset:0;z-index:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;pointer-events:none}
-.hana-game-frame .hana-game-world-content{position:relative;z-index:2;width:100%;min-width:0;max-width:100%}
-.hana-game-frame .hana-game-content{position:relative;z-index:10;display:block;width:100%;min-width:0;max-width:100%;overflow:visible}
-.hana-game-frame .hana-game-content>*{min-width:0;max-width:100%}
+
+.hana-game-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:-3;
+  overflow:hidden;
+  pointer-events:none;
+  background:#07131d;
+}
+.hana-game-backdrop-art{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  max-width:none!important;
+  object-fit:cover;
+  object-position:center center;
+  display:block;
+  filter:saturate(1.04) contrast(1.02);
+}
+.hana-game-backdrop-shade{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg,rgba(4,13,24,.68) 0%,rgba(4,13,24,.18) 35%,rgba(4,13,24,.72) 100%);
+}
+.hana-game-backdrop-vignette{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 50% 42%,transparent 20%,rgba(2,8,15,.22) 62%,rgba(2,8,15,.68) 100%);
+}
+.hana-game-stars{
+  position:absolute;
+  inset:0;
+  opacity:.24;
+  background-image:radial-gradient(circle,rgba(255,239,179,.9) 0 1px,transparent 1.5px);
+  background-size:82px 82px;
+  mask-image:linear-gradient(180deg,#000,transparent 70%);
+}
+
+.hana-game-nav{
+  position:sticky;
+  top:0;
+  z-index:100;
+  width:100%;
+  min-width:0;
+  border-bottom:1px solid rgba(241,199,123,.18);
+  background:rgba(5,15,24,.66);
+  backdrop-filter:blur(18px) saturate(1.2);
+}
+.hana-game-nav-inner{
+  width:100%;
+  max-width:1440px;
+  min-width:0;
+  min-height:64px;
+  margin:0 auto;
+  padding:10px 14px;
+  display:grid;
+  grid-template-columns:auto auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
+}
+.hana-game-nav-button,.hana-game-brand{
+  min-width:0;
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.hana-game-nav-button{
+  padding:9px 13px;
+  border:1px solid rgba(255,255,255,.15);
+  background:rgba(4,12,21,.34);
+  color:rgba(255,255,255,.88);
+  font-size:.78rem;
+  font-weight:700;
+  text-decoration:none;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+.hana-game-nav-button:hover{background:rgba(255,255,255,.1);border-color:rgba(241,199,123,.4);transform:translateY(-1px)}
+.hana-game-brand{
+  padding:8px 11px;
+  color:#f5d68e;
+  font-family:'Unbounded',sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-decoration:none;
+}
+.hana-game-nav-title{min-width:0;text-align:center;line-height:1.1}
+.hana-game-nav-title span{display:block;color:rgba(241,199,123,.75);font-size:.58rem;font-weight:800;letter-spacing:.17em;text-transform:uppercase}
+.hana-game-nav-title strong{display:block;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fffaf4;font-family:'Fraunces',Georgia,serif;font-size:.95rem;font-weight:600}
+
+.hana-game-shell{
+  position:relative;
+  z-index:1;
+  width:min(100%,1440px);
+  margin:0 auto;
+  padding:20px 16px 56px;
+}
+.hana-game-world{
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  min-height:180px;
+  width:100%;
+  min-width:0;
+  margin-bottom:18px;
+  overflow:hidden;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:18px;
+  border:1px solid rgba(241,199,123,.25);
+  border-radius:28px;
+  background:linear-gradient(110deg,rgba(4,14,24,.72),rgba(4,14,24,.2));
+  box-shadow:0 22px 70px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.08);
+  padding:22px 22px 18px;
+}
+.hana-game-world::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  z-index:-1;
+  background:radial-gradient(circle at 80% 30%,rgba(241,199,123,.14),transparent 30%);
+  pointer-events:none;
+}
+.hana-game-world-copy{min-width:0;max-width:760px}
+.hana-game-world-copy>span{display:block;color:#f1c77b;font-size:.63rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.hana-game-world-copy h1{margin:8px 0 0;max-width:100%;overflow-wrap:anywhere;font-family:'Fraunces',Georgia,serif;font-size:clamp(1.7rem,4vw,3.1rem);line-height:1;letter-spacing:-.045em;color:#fff;filter:drop-shadow(0 5px 18px rgba(0,0,0,.35))}
+.hana-game-world-copy p{margin:9px 0 0;max-width:600px;color:rgba(255,255,255,.68);font-size:.82rem;line-height:1.55}
+.hana-game-companion{position:relative;z-index:2;flex:0 0 auto;width:118px;height:148px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:1px solid rgba(241,199,123,.28);border-radius:24px 24px 18px 18px;background:linear-gradient(180deg,rgba(4,15,26,.1),rgba(4,15,26,.58));box-shadow:0 16px 30px rgba(0,0,0,.22)}
+.hana-game-companion img{width:100%;height:100%;max-width:none!important;object-fit:contain;object-position:center bottom;display:block;filter:drop-shadow(0 10px 18px rgba(0,0,0,.42))}
+
+.hana-game-content{position:relative;z-index:10;display:block;width:100%;min-width:0;max-width:100%;overflow:visible}
+.hana-game-content>*{min-width:0;max-width:100%}
 .hana-game-frame .grid,.hana-game-frame .flex,.hana-game-frame [class*="grid-cols-"]{min-width:0;max-width:100%}
 .hana-game-frame .grid>*,.hana-game-frame .flex>*,.hana-game-frame [class*="grid-cols-"]>*{min-width:0;max-width:100%}
-.hana-game-frame img,.hana-game-frame video,.hana-game-frame canvas,.hana-game-frame svg{max-width:100%}
-.hana-game-frame img:not(.hana-game-world-art),.hana-game-frame video{height:auto}
+.hana-game-frame img,.hana-game-frame video,.hana-game-frame canvas{max-width:100%}
 .hana-game-frame a{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
-.hana-game-frame button{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.hana-game-frame button{max-width:100%;min-width:0;overflow-wrap:anywhere}
 .hana-game-frame input,.hana-game-frame textarea,.hana-game-frame select{min-width:0;max-width:100%}
 .hana-game-frame pre,.hana-game-frame code{max-width:100%;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 
-/* Never let page-level absolute children escape their flow container. */
-.hana-game-frame .hana-game-content>.absolute,.hana-game-frame .hana-game-content>[class*="absolute"]{position:relative!important;inset:auto!important;transform:none!important}
+/* Content surfaces remain above the world art but never escape their own flow. */
+.hana-game-content .absolute{max-width:100%}
+.hana-game-content .fixed{max-width:100%}
 
 @media(max-width:639px){
- .hana-game-frame .hana-game-world{min-height:230px}
- .hana-game-frame .hana-game-world-content{min-height:230px}
- .hana-game-frame .hana-game-content{padding-bottom:1.25rem}
+  .hana-game-nav-inner{grid-template-columns:auto minmax(0,1fr) auto;padding:8px 10px}
+  .hana-game-brand{display:none}
+  .hana-game-nav-button{padding:8px 10px}
+  .hana-game-nav-button span{display:none}
+  .hana-game-nav-title strong{font-size:.86rem}
+  .hana-game-shell{padding:12px 10px 42px}
+  .hana-game-world{min-height:154px;margin-bottom:12px;border-radius:22px;padding:16px 14px 14px;gap:10px}
+  .hana-game-world-copy h1{font-size:clamp(1.5rem,8vw,2.15rem)}
+  .hana-game-world-copy p{font-size:.72rem;max-width:44ch}
+  .hana-game-companion{width:82px;height:106px;border-radius:18px}
 }
 @media(min-width:640px){
- .hana-game-frame .hana-game-world{min-height:300px}
- .hana-game-frame .hana-game-world-content{min-height:300px}
+  .hana-game-shell{padding-left:28px;padding-right:28px}
 }
-.hana-game-frame [href^="http"],.hana-game-frame [data-url]{overflow-wrap:anywhere;word-break:break-word}
+@media(min-width:1024px){
+  .hana-game-shell{padding-top:26px}
+  .hana-game-world{min-height:205px;padding-left:30px;padding-right:30px}
+  .hana-game-companion{width:145px;height:175px}
+}
