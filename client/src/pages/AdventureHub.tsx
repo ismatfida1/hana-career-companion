@@ -1,55 +1,66 @@
-import { ArrowRight, Compass, MessageCircle, Sparkles, Trophy, Gamepad2, BookOpen } from "lucide-react";
+import { ArrowRight, BookOpen, Compass, Gamepad2, MessageCircle, Sparkles, Trophy, Zap } from "lucide-react";
 import { Link } from "wouter";
 
 const worlds = [
-  ["ROADMAP", "Code Forge", "/roadmap", "/assets/worlds/code-forge.svg", "Follow your skill path"],
-  ["OPPORTUNITIES", "Summit of Builders", "/opportunities", "/assets/worlds/beacon-summit.svg", "Find quests worth pursuing"],
-  ["PROJECTS", "Weblands", "/projects", "/assets/worlds/webwilds.svg", "Build proof of your skills"],
-  ["RESEARCH", "Cloudspire", "/research", "/assets/worlds/skyforge.svg", "Explore universities and resources"],
-  ["ASK HANA", "Origin Village", "/chat", "/assets/worlds/origin-village.svg", "Talk through your next move"],
+  ["01", "ROADMAP", "Code Forge", "/roadmap", "/assets/worlds/code-forge.svg", "Follow your skill path"],
+  ["02", "PROJECTS", "Weblands", "/projects", "/assets/worlds/webwilds.svg", "Build proof of your skills"],
+  ["03", "OPPORTUNITIES", "Summit of Builders", "/opportunities", "/assets/worlds/beacon-summit.svg", "Find current opportunities"],
+  ["04", "RESEARCH", "Cloudspire", "/research", "/assets/worlds/skyforge.svg", "Explore universities and resources"],
+  ["05", "ASK HANA", "Origin Village", "/chat", "/assets/worlds/origin-village.svg", "Talk through your next move"],
 ] as const;
 
 export default function AdventureHub() {
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#06131e] text-white">
-      <img src="/assets/worlds/origin-village.svg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-90" />
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,16,25,.28),rgba(5,16,25,.86))]" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_22%,rgba(70,205,195,.18),transparent_34%)]" />
+    <main className="relative min-h-screen overflow-x-hidden bg-[#06131e] text-white">
+      <img src="/assets/worlds/origin-village.svg" alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-80" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,16,25,.18),rgba(5,16,25,.88))]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_22%,rgba(70,205,195,.2),transparent_30%)]" />
 
-      <header className="relative z-20 flex items-center justify-between px-5 py-5 sm:px-9 sm:py-7">
+      <header className="relative z-30 mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 sm:px-8 sm:py-6">
         <Link href="/" className="font-display text-lg font-bold tracking-[.22em]">HANA</Link>
-        <div className="flex items-center gap-2 rounded-full border border-white/15 bg-black/25 px-4 py-2 text-[10px] font-bold uppercase tracking-[.16em] text-white/60 backdrop-blur-md"><Sparkles className="h-3.5 w-3.5 text-[#f1c77b]" /> Your adventure</div>
+        <div className="flex items-center gap-2 rounded-full border border-white/15 bg-[#07131e]/60 px-3 py-2 text-[10px] font-bold uppercase tracking-[.15em] text-white/70 backdrop-blur-md"><Sparkles className="h-3.5 w-3.5 text-[#f1c77b]" /> Your adventure</div>
       </header>
 
-      <section className="relative z-10 mx-auto flex min-h-[calc(100vh-80px)] max-w-7xl flex-col justify-center px-5 pb-12 pt-4 sm:px-9">
-        <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[.28em] text-[#f1c77b]">Origin Village · Chapter 01</p>
-          <h1 className="mt-3 font-display text-4xl font-semibold tracking-[-.05em] sm:text-6xl">The path is yours now.</h1>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-white/65 sm:text-base">Hana has opened the worlds. Choose where you want to go — every panel below is a real interactive part of your adventure.</p>
+      <section className="relative z-20 mx-auto flex min-h-[calc(100vh-76px)] max-w-7xl flex-col px-4 pb-8 pt-2 sm:px-8 sm:pb-12">
+        <div className="grid items-end gap-5 lg:grid-cols-[1fr_230px]">
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-bold uppercase tracking-[.35em] text-[#f1c77b]">HANA · YOUR CS CAREER ADVENTURE</p>
+            <h1 className="mt-2 font-display text-4xl font-semibold tracking-[-.05em] sm:text-6xl">Choose your next world.</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">Your learning path is a game. Explore a world, learn a skill, complete a quest, build something, and come back to Hana when you get stuck.</p>
+          </div>
+
+          <div className="relative mx-auto flex w-full max-w-[210px] items-end justify-center lg:mx-0 lg:justify-end">
+            <img src="/assets/hana-phase1-approved-opening.png" alt="Hana, your career companion" className="h-36 w-40 object-contain object-bottom drop-shadow-[0_20px_35px_rgba(0,0,0,.45)] sm:h-44 sm:w-48" />
+            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 rounded-full border border-white/15 bg-[#07131e]/85 px-3 py-1 text-[10px] font-semibold whitespace-nowrap backdrop-blur-md">Hana · “Let’s build your future.”</div>
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {worlds.map(([label, world, href, image, description]) => (
-            <Link key={href} href={href} className="group relative min-h-[245px] overflow-hidden rounded-[28px] border border-white/15 bg-black/25 shadow-2xl backdrop-blur-[2px] transition duration-300 hover:-translate-y-2 hover:border-[#f1c77b]/55 hover:shadow-[0_20px_60px_rgba(0,0,0,.4)] focus:outline-none focus:ring-2 focus:ring-[#f1c77b]">
-              <img src={image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-500 group-hover:scale-105 group-hover:opacity-100" />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#06131e] via-[#06131e]/45 to-transparent" />
-              <div className="relative flex h-full min-h-[245px] flex-col justify-end p-5">
-                <span className="text-[10px] font-bold uppercase tracking-[.18em] text-[#f1c77b]">{label}</span>
-                <h2 className="mt-2 font-display text-xl font-semibold">{world}</h2>
-                <p className="mt-1 text-xs leading-5 text-white/55">{description}</p>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-white/75">ENTER WORLD <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></span>
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#07131e]/55 px-4 py-3 backdrop-blur-md"><Zap className="h-4 w-4 text-[#f1c77b]" /><div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-white/35">Energy</p><p className="text-sm font-bold">80 / 100</p></div></div>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#07131e]/55 px-4 py-3 backdrop-blur-md"><Sparkles className="h-4 w-4 text-[#f1c77b]" /><div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-white/35">XP</p><p className="text-sm font-bold">120 · Level 3</p></div></div>
+          <Link href="/mission" className="group flex items-center justify-between gap-3 rounded-2xl border border-[#f1c77b]/30 bg-[#f1c77b]/10 px-4 py-3 backdrop-blur-md transition hover:bg-[#f1c77b]/20"><div><p className="text-[9px] font-bold uppercase tracking-[.16em] text-[#f1c77b]/70">Today’s mission</p><p className="text-sm font-bold">Learn how APIs work</p></div><ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" /></Link>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {worlds.map(([number, label, world, href, image, description], index) => (
+            <Link key={href} href={href} className="group relative min-h-[220px] overflow-hidden rounded-[26px] border border-white/15 bg-[#07131e]/60 shadow-2xl backdrop-blur-sm transition duration-300 hover:-translate-y-1.5 hover:border-[#f1c77b]/60 focus:outline-none focus:ring-2 focus:ring-[#f1c77b]">
+              <img src={image} alt="" aria-hidden="true" className="absolute inset-0 h-full w-full object-cover object-center opacity-65 transition duration-500 group-hover:scale-105 group-hover:opacity-90" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#06131e] via-[#06131e]/55 to-transparent" />
+              <div className="relative flex h-full min-h-[220px] flex-col justify-between p-4 sm:p-5">
+                <div className="flex items-start justify-between"><span className="rounded-full border border-white/15 bg-black/25 px-2.5 py-1 text-[9px] font-black tracking-[.15em] text-white/60">WORLD {number}</span>{index > 0 && <span className="rounded-full bg-black/25 px-2 py-1 text-[9px] text-white/45">OPEN</span>}</div>
+                <div><p className="text-[9px] font-black uppercase tracking-[.18em] text-[#f1c77b]">{label}</p><h2 className="mt-1 font-display text-xl font-semibold">{world}</h2><p className="mt-1 text-xs leading-5 text-white/55">{description}</p><span className="mt-3 inline-flex items-center gap-1 text-[10px] font-black tracking-[.13em] text-white/80">ENTER WORLD <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-1" /></span></div>
               </div>
             </Link>
           ))}
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <Link href="/roadmap" className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-md hover:bg-white/10"><Compass className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Continue roadmap</span></Link>
-          <Link href="/opportunities" className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-md hover:bg-white/10"><Trophy className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Open opportunity board</span></Link>
-          <Link href="/chat" className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black/25 px-4 py-3 backdrop-blur-md hover:bg-white/10"><MessageCircle className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Ask Hana anything</span></Link>
+        <div className="mt-4 grid gap-2 sm:grid-cols-3">
+          <Link href="/roadmap" className="flex min-h-11 items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 backdrop-blur-md hover:bg-white/10"><Compass className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Journey / Roadmap</span></Link>
+          <Link href="/opportunities" className="flex min-h-11 items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 backdrop-blur-md hover:bg-white/10"><Trophy className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Latest opportunities</span></Link>
+          <Link href="/chat" className="flex min-h-11 items-center gap-3 rounded-2xl border border-white/10 bg-black/30 px-4 backdrop-blur-md hover:bg-white/10"><MessageCircle className="h-4 w-4 text-[#f1c77b]" /><span className="text-sm font-semibold">Ask Hana</span></Link>
         </div>
 
-        <div className="mt-5 flex flex-wrap items-center gap-4 text-[10px] font-bold uppercase tracking-[.16em] text-white/35"><span className="inline-flex items-center gap-1.5"><Gamepad2 className="h-3.5 w-3.5" /> Interactive worlds</span><span className="inline-flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> Real learning data</span><span>Progress saves automatically</span></div>
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-[9px] font-bold uppercase tracking-[.16em] text-white/35"><span className="inline-flex items-center gap-1.5"><Gamepad2 className="h-3.5 w-3.5" /> Game mode</span><span className="inline-flex items-center gap-1.5"><BookOpen className="h-3.5 w-3.5" /> Learning + building</span><span>Progress saves automatically</span></div>
       </section>
     </main>
   );
