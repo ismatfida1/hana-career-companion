@@ -29,8 +29,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build Hana
-        run: pnpm build
+      - name: Build Cloudflare assets
+        run: pnpm build:cloudflare
 
       - name: Deploy to Cloudflare Workers
         uses: cloudflare/wrangler-action@v3
