@@ -15,22 +15,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           package_json_file: package.json
+
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: pnpm
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
       - name: Dependency audit (production runtime)
         continue-on-error: true
         run: |
           echo 'Running production dependency audit. Advisories are reported while dependency upgrades are handled separately.'
           pnpm audit --prod --audit-level=high || true
+
       - name: Check for accidentally committed API keys
         shell: bash
         run: |
