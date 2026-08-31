@@ -26,7 +26,7 @@ function buildResources(skill: string, university?: UniversityOption): Resource[
   const book = curatedBook(skill);
   const fallback = { title: "freeCodeCamp", url: "https://www.freecodecamp.org/learn/" };
   const uni = university ?? universityAlternatives[0];
-  const uniAlt = universityAlternatives.find(item => item.url !== uni.curriculum) ?? universityAlternatives[1];
+  const uniAlt = universityAlternatives.find(item => item.curriculum !== uni.curriculum) ?? universityAlternatives[1];
   return [
     { title: uni.name, url: uni.curriculum, type: "university", alternative: { title: uniAlt.name, url: uniAlt.curriculum }, note: "Official degree requirements. Hana compares this with your roadmap only after you ask; it never changes your roadmap automatically." },
     { title: video.title, url: video.url, type: "youtube", alternative: { title: "freeCodeCamp channel search", url: "https://www.youtube.com/@freecodecamp/search?query=" + encodeURIComponent(skill) }, note: curatedVideo(skill) ? "Curated free educational video." : "No specific video was curated yet; this is a reputable free-channel fallback search." },
