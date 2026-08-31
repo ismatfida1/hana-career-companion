@@ -1,62 +1,97 @@
+import { ArrowRight, Moon, Sun } from "lucide-react";
 import { useLocation } from "wouter";
-import { careerCatalog, defaultCareerPath, type CareerPathId } from "@/data/careerCatalog";
 import { useEffect, useState } from "react";
+import { FantasyBackground } from "@/components/FantasyBackground";
+import { GameButton } from "@/components/GameButton";
+import { useTheme } from "@/contexts/ThemeContext";
 
-const worlds = [
-  { name: "Origin Village", icon: "🌱", label: "Roadmap", href: "/roadmap" },
-  { name: "Code Forge", icon: "⚒️", label: "Projects", href: "/projects" },
-  { name: "Webwilds", icon: "🌐", label: "Opportunities", href: "/opportunities" },
-  { name: "Skyforge", icon: "☁️", label: "Research", href: "/research" },
-  { name: "Beacon Summit", icon: "🏔️", label: "Ask Hana", href: "/chat" },
+const menuItems = [
+  { label: "ROADMAP", href: "/roadmap" },
+  { label: "PROJECTS", href: "/projects" },
+  { label: "OPPORTUNITIES", href: "/opportunities" },
+  { label: "CHAT WITH HANA", href: "/chat" },
 ] as const;
 
 export default function JourneyStart() {
   const [, navigate] = useLocation();
-  const [selectedPath, setSelectedPath] = useState<CareerPathId | null>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const { theme, toggleTheme, switchable } = useTheme();
+  const [loaded, setLoaded] = useState(false);
+  const [selected, setSelected] = useState("ROADMAP");
 
   useEffect(() => {
-    const stored = localStorage.getItem("hana-career-path") as CareerPathId | null;
-    setSelectedPath(stored);
-    setIsLoaded(true);
+    const timer = window.setTimeout(() => setLoaded(true), 160);
+    return () => window.clearTimeout(timer);
   }, []);
 
-  const currentPath = careerCatalog.find(p => p.id === selectedPath) ?? careerCatalog.find(p => p.id === defaultCareerPath) ?? careerCatalog[0];
-  const choosePath = (id: CareerPathId) => { localStorage.setItem("hana-career-path", id); setSelectedPath(id); navigate("/roadmap"); };
+  const dark = theme === "dark";
 
   return (
-    <main className="hana-journey-start relative min-h-[100svh] overflow-x-hidden bg-[#07131d] text-white">
-      <div className="absolute inset-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('/assets/worlds/origin-village.svg')" }} aria-hidden="true" />
-      <div className="absolute inset-0 bg-gradient-to-b from-[#06131e]/20 via-[#06131e]/45 to-[#06131e]/90" aria-hidden="true" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,transparent_0%,rgba(3,10,15,.18)_55%,rgba(3,10,15,.72)_100%)]" aria-hidden="true" />
+    <FantasyBackground
+      imageUrl="/assets/worlds/origin-village.svg"
+      className={`hana-cinematic-menu min-h-[100svh] overflow-hidden transition-colors duration-700 ${dark ? "saturate-[.8]" : "saturate-[1.08]"}`}
+      overlayClassName={dark
+        ? "bg-[linear-gradient(90deg,rgba(4,8,22,.76),rgba(6,8,25,.36),rgba(18,8,38,.38))]"
+        : "bg-[linear-gradient(90deg,rgba(250,249,239,.72),rgba(244,251,246,.24),rgba(7,31,31,.20))]"}
+    >
+      <main className="relative min-h-[100svh]">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_74%_52%,transparent_0%,transparent_28%,rgba(2,10,16,.18)_72%,rgba(2,10,16,.45)_100%)]" aria-hidden="true" />
 
-      <div className="hana-journey-content relative z-10 mx-auto min-h-[100svh] w-full max-w-6xl px-4 py-5 sm:px-6 md:py-8">
-        <header className={`flex items-center justify-between gap-3 transition-all duration-700 ${isLoaded ? "translate-y-0 opacity-100" : "-translate-y-3 opacity-0"}`}>
-          <button type="button" onClick={() => navigate("/")} className="shrink-0 rounded-full border border-white/15 bg-[#071722]/45 px-4 py-2 text-xs font-semibold text-white/70 backdrop-blur-md transition hover:border-[#f1c77b]/50 hover:text-white">← Back</button>
-          <span className="min-w-0 truncate rounded-full border border-[#f1c77b]/35 bg-[#071722]/45 px-4 py-2 text-[10px] font-bold uppercase tracking-[.2em] text-[#f1c77b] backdrop-blur-md">The adventure begins</span>
-        </header>
+        <div className="relative z-20 flex min-h-[100svh] w-full items-center px-5 py-8 sm:px-9 lg:px-14">
+          <section className={`w-full max-w-7xl transition-all duration-1000 ${loaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
+            <div className="max-w-[680px]">
+              <p className={`text-[10px] font-bold uppercase tracking-[.46em] drop-shadow-md sm:text-xs ${dark ? "text-[#f1c77b]" : "text-[#2e786b]"}`}>THE ADVENTURE CONTINUES</p>
+              <h1 className={`mt-1 font-display text-6xl font-semibold tracking-[.07em] drop-shadow-[0_5px_26px_rgba(0,0,0,.65)] sm:text-8xl lg:text-9xl ${dark ? "text-[#fff8e8]" : "text-[#173c3c]"}`}>HANA</h1>
+              <p className={`mt-1 font-display text-base uppercase tracking-[.24em] drop-shadow-lg sm:text-xl ${dark ? "text-[#f1c77b]" : "text-[#285c55]"}`}>Your CS adventure</p>
 
-        <section className={`mx-auto mt-10 max-w-4xl text-center transition-all duration-700 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
-          <p className="text-[10px] font-bold uppercase tracking-[.42em] text-[#f1c77b] drop-shadow-md">Choose your destiny</p>
-          <h1 className="mt-2 break-words font-display text-4xl font-semibold tracking-wide text-white drop-shadow-[0_5px_24px_rgba(0,0,0,.75)] sm:text-6xl">Welcome, adventurer.</h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-white/80 drop-shadow-md sm:text-base">Hana has opened five worlds for your CS journey. Choose a direction, then explore one quest at a time.</p>
-        </section>
+              <div className="mt-8 grid max-w-[390px] gap-3 sm:mt-10">
+                {menuItems.map((item, index) => {
+                  const active = selected === item.label;
+                  return (
+                    <GameButton
+                      key={item.href}
+                      onMouseEnter={() => setSelected(item.label)}
+                      onFocus={() => setSelected(item.label)}
+                      onClick={() => navigate(item.href)}
+                      className={`group min-h-12 justify-between rounded-xl border-2 px-5 text-left text-sm tracking-[.14em] transition-all duration-200 ${
+                        active
+                          ? dark
+                            ? "border-[#b8b8ff] bg-gradient-to-r from-[#2d346d] to-[#574b9c] text-[#fff8e8] shadow-[0_0_28px_rgba(126,122,255,.34)]"
+                            : "border-[#e6c46d] bg-gradient-to-r from-[#2e725f] to-[#1b5045] text-[#fff8e8] shadow-[0_0_28px_rgba(83,176,148,.30)]"
+                          : dark
+                            ? "border-[#aaa8d9]/30 bg-[#071722]/55 text-[#f8ead0]/80 hover:border-[#b8b8ff]/70"
+                            : "border-[#477f74]/25 bg-white/55 text-[#285c55]/85 hover:border-[#e6c46d]/70"
+                      }`}
+                    >
+                      <span className="flex items-center gap-3"><span className={`text-xs ${active ? "opacity-100" : "opacity-40"}`}>✦</span>{item.label}</span>
+                      <ArrowRight className={`h-4 w-4 transition-transform ${active ? "translate-x-1 opacity-100" : "opacity-40"}`} />
+                    </GameButton>
+                  );
+                })}
 
-        <section className={`mx-auto mt-8 max-w-4xl rounded-[30px] border border-[#f1c77b]/25 bg-[#071722]/58 p-4 shadow-2xl backdrop-blur-xl transition-all duration-700 delay-100 sm:p-6 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
-          <div className="mb-3 flex items-center justify-between gap-3"><h2 className="text-xs font-bold uppercase tracking-[.2em] text-[#f1c77b]">Choose your path</h2><span className="min-w-0 truncate text-[10px] uppercase tracking-wider text-white/35">{currentPath.shortTitle}</span></div>
-          <div className="flex flex-wrap justify-center gap-2 sm:justify-start">{careerCatalog.slice(0, 6).map(item => <button key={item.id} type="button" onClick={() => choosePath(item.id)} className={`min-w-0 max-w-full rounded-full border px-4 py-2.5 text-xs font-bold transition-all duration-200 ${currentPath.id === item.id ? "border-[#f1c77b] bg-[#f1c77b] text-[#13232b] shadow-[0_0_24px_rgba(241,199,123,.25)]" : "border-white/15 bg-white/[.05] text-white/75 hover:border-[#f1c77b]/45 hover:bg-[#f1c77b]/10 hover:text-white"}`}>{item.title}</button>)}</div>
-        </section>
+                <button
+                  type="button"
+                  onClick={() => toggleTheme?.()}
+                  disabled={!switchable}
+                  className={`mt-2 flex min-h-11 items-center justify-between rounded-xl border px-5 py-3 text-left backdrop-blur-md transition ${
+                    dark ? "border-[#aaa8d9]/30 bg-[#071722]/55 text-[#fff8e8] hover:border-[#b8b8ff]/60" : "border-[#477f74]/25 bg-white/55 text-[#285c55] hover:border-[#e6c46d]/60"
+                  }`}
+                  aria-label="Switch between bright and dark mode"
+                >
+                  <span><span className="block text-[10px] font-bold uppercase tracking-[.22em]">OPTIONS</span><span className={`mt-1 block text-[10px] ${dark ? "text-white/55" : "text-[#315a58]/60"}`}>{dark ? "Switch to bright world" : "Switch to dark world"}</span></span>
+                  {dark ? <Moon className="h-4 w-4 text-[#b8b8ff]" /> : <Sun className="h-4 w-4 text-[#e2b955]" />}
+                </button>
+              </div>
 
-        <section className={`mx-auto mt-5 flex max-w-4xl items-center gap-3 rounded-[26px] border border-white/10 bg-[#071722]/50 p-4 shadow-xl backdrop-blur-xl transition-all duration-700 delay-200 ${isLoaded ? "scale-100 opacity-100" : "scale-95 opacity-0"}`}>
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[#f1c77b]/35 bg-gradient-to-b from-[#f1c77b] to-[#c9974d] text-3xl shadow-[0_0_24px_rgba(241,199,123,.18)]">🤖</div>
-          <div className="min-w-0"><p className="text-xs font-bold uppercase tracking-wider text-[#f1c77b]/80">Hana says</p><p className="mt-1 break-words text-sm leading-5 text-white/80">“Pick the path that excites you most. I’ll be with you every step.”</p></div>
-        </section>
+              <p className={`mt-5 text-[10px] uppercase tracking-[.28em] ${dark ? "text-[#f5dfb2]/70" : "text-[#35655f]/65"}`}>Select a destination • One quest at a time</p>
+            </div>
+          </section>
 
-        <section className={`mx-auto mt-6 max-w-5xl transition-all duration-700 delay-300 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
-          <div className="mb-4 text-center"><h2 className="font-display text-2xl font-semibold text-white sm:text-3xl">Your world map</h2><p className="mt-1 text-sm text-white/55">Where will Hana take you?</p></div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">{worlds.map(world => <button key={world.href} type="button" onClick={() => navigate(world.href)} className="group min-h-32 min-w-0 rounded-[24px] border border-white/10 bg-[#071722]/55 p-4 text-center shadow-xl backdrop-blur-md transition-all hover:-translate-y-1 hover:border-[#f1c77b]/45 hover:bg-[#071722]/75 hover:shadow-[0_12px_40px_rgba(0,0,0,.35)] active:scale-[.98]"><div className="text-3xl transition-transform duration-200 group-hover:scale-110 sm:text-4xl">{world.icon}</div><div className="mt-2 text-[9px] font-bold uppercase tracking-[.16em] text-[#f1c77b]">{world.label}</div><div className="mt-1 break-words text-sm font-semibold text-white/85">{world.name}</div></button>)}</div>
-        </section>
-      </div>
-    </main>
+          <div className={`pointer-events-none absolute inset-y-0 right-[-3%] flex w-[58%] items-end justify-end transition-all duration-1000 delay-150 ${loaded ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
+            <div className={`absolute bottom-[8%] right-[18%] h-72 w-72 rounded-full blur-3xl ${dark ? "bg-[#7774ff]/25" : "bg-[#58b89f]/22"}`} />
+            <img src="/assets/hana-phase1-approved-opening.png" alt="Hana, your AI career companion" className="relative z-10 max-h-[82svh] w-auto max-w-[58vw] object-contain object-bottom drop-shadow-[0_30px_42px_rgba(0,0,0,.52)]" />
+          </div>
+        </div>
+      </main>
+    </FantasyBackground>
   );
 }
