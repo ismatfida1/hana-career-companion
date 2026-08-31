@@ -40,9 +40,7 @@ export const appRouter = router({
       const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You can browse the web when current or niche information is needed. When you browse, prefer primary/official sources, verify dates and distinguish current facts from advice, and include useful source links. When recommending learning resources, prefer one high-fit interactive or university resource rather than a list. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
       const history = input.history.slice(-10);
       const providers = configuredAiProviders();
-      if (!providers.openai && !providers.gemini && !providers.forge) {
-        throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Hana AI is not configured on this deployment. Add OPENAI_API_KEY (recommended), GEMINI_API_KEY, or BUILT_IN_FORGE_API_KEY to the server environment, then redeploy." });
-      }
+      if (!providers.openai && !providers.gemini && !providers.forge) throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Hana AI is not configured on this deployment. Add OPENAI_API_KEY, GEMINI_API_KEY, or BUILT_IN_FORGE_API_KEY to the server environment, then redeploy." });
       try {
         let answer: string;
         let provider: "openai" | "forge" | "gemini";
@@ -88,3 +86,5 @@ export const appRouter = router({
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
   }),
 });
+
+export type AppRouter = typeof appRouter;
