@@ -24,8 +24,8 @@ function Router() {
     <Route path="/opportunities" component={Opportunities} />
     <Route path="/chat" component={HanaChat} />
     <Route path="/research" component={Research} />
-    <Route path="/profile" component={Home} />
-    <Route path="/settings" component={Home} />
+    <Route path="/profile" component={CareerHub} />
+    <Route path="/settings" component={CareerHub} />
     <Route path="/onboarding" component={JourneyStart} />
     <Route path="/path" component={JourneyStart} />
     <Route path="/career-path" component={CareerPath} />
