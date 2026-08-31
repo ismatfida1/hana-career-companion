@@ -7,7 +7,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdventureHome from "./pages/AdventureHome";
 import JourneyStart from "./pages/JourneyStart";
-import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
 import MissionScene from "./pages/MissionScene";
 import Research from "./pages/Research";
@@ -15,6 +14,7 @@ import Projects from "./pages/Projects";
 import Opportunities from "./pages/Opportunities";
 import HanaChat from "./pages/HanaChat";
 import CareerHub from "./pages/CareerHub";
+import QuestDetail from "./pages/QuestDetail";
 
 function Router() {
   const base = typeof window !== "undefined" && window.location.hostname.endsWith("github.io") ? "/hana-career-companion" : "";
@@ -22,6 +22,7 @@ function Router() {
     <Route path="/" component={AdventureHome} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={MissionScene} />
+    <Route path="/quest" component={QuestDetail} />
     <Route path="/projects" component={Projects} />
     <Route path="/opportunities" component={Opportunities} />
     <Route path="/chat" component={HanaChat} />
