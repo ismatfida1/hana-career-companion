@@ -31,7 +31,7 @@ export default function HanaGameFrame({ children, title }: { children: ReactNode
           <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
             <button type="button" onClick={goBack} aria-label="Go back" className="inline-flex min-h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-2 text-sm font-semibold transition hover:bg-white/10 active:scale-95 sm:gap-2 sm:px-3">
               <ArrowLeft className="h-4 w-4" />
-              <span className="hidden xs:inline sm:inline">Back</span>
+              <span className="hidden sm:inline">Back</span>
             </button>
             <Link href="/" className="hidden min-w-0 items-center gap-2 px-2 font-display text-lg font-bold sm:flex">
               <Sparkles className="h-4 w-4 shrink-0 text-[#f1c77b]" />HANA
@@ -51,13 +51,26 @@ export default function HanaGameFrame({ children, title }: { children: ReactNode
       </header>
 
       <div className="relative mx-auto w-full max-w-7xl min-w-0 px-3 py-4 sm:px-7 sm:py-6 lg:px-10">
-        <section className="hana-game-world relative isolate mb-5 min-h-[155px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[.04] shadow-2xl sm:min-h-[220px]" aria-label={`${world.world} world scene`}>
+        <section className="hana-game-world relative isolate mb-5 min-h-[190px] overflow-hidden rounded-[28px] border border-white/10 bg-white/[.04] shadow-2xl sm:min-h-[250px]" aria-label={`${world.world} world scene`}>
           <img src={world.image} alt="" aria-hidden="true" className="hana-game-world-art absolute inset-0 h-full w-full object-contain object-center p-2 opacity-35 sm:p-4" />
-          <div aria-hidden="true" className="hana-game-world-overlay absolute inset-0 bg-gradient-to-r from-[#101d2b]/95 via-[#101d2b]/60 to-[#101d2b]/80" />
-          <div className="hana-game-world-content relative z-10 flex min-h-[155px] items-end px-4 py-5 sm:min-h-[220px] sm:px-7 sm:py-7">
+          <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-r from-[#101d2b]/96 via-[#101d2b]/60 to-[#101d2b]/82" />
+
+          <div className="hana-game-world-content relative z-10 grid min-h-[190px] grid-cols-[minmax(0,1fr)_minmax(96px,150px)] items-end gap-3 px-4 py-5 sm:min-h-[250px] sm:grid-cols-[minmax(0,1fr)_180px] sm:px-7 sm:py-7 lg:grid-cols-[minmax(0,1fr)_210px]">
             <div className="min-w-0 max-w-3xl">
               <p className="break-words text-xs font-bold uppercase tracking-[.16em] text-[#f1c77b]/75">Hana adventure · {world.world}</p>
               <h2 className="mt-2 break-words font-display text-2xl font-semibold tracking-[-.04em] sm:text-4xl">{title}</h2>
+            </div>
+
+            <div className="hana-companion-slot relative flex h-36 min-w-0 items-end justify-center overflow-hidden rounded-2xl border border-white/10 bg-black/10 sm:h-44 lg:h-48" aria-label="Hana companion">
+              <img
+                src="/assets/hana-phase1-approved-opening.png"
+                alt="Hana, your companion"
+                loading="eager"
+                className="h-full w-full object-contain object-right-bottom"
+              />
+              <div className="absolute bottom-2 left-2 right-2 rounded-full border border-white/10 bg-[#101d2b]/80 px-2 py-1 text-center text-[10px] font-semibold text-white/75 backdrop-blur">
+                Hana · your guide
+              </div>
             </div>
           </div>
         </section>
