@@ -29,7 +29,7 @@ export default {
     }
 
     if (url.pathname === "/api/health" && request.method === "GET") {
-      return json({ ok: true, service: "hana-api", runtime: "cloudflare-workers" }, 200, origin);
+      return json({ ok: true, service: "hana-api", runtime: "cloudflare-workers", aiConfigured: Boolean(workerEnv.OPENAI_API_KEY) }, 200, origin);
     }
 
     if (url.pathname !== "/api/free-chat" || request.method !== "POST") {
@@ -54,7 +54,7 @@ export default {
     const memory = typeof body?.memory === "string" ? body.memory.slice(0, 4000) : "";
 
     const apiKey = workerEnv.OPENAI_API_KEY;
-    const model = workerEnv.OPENAI_MODEL || "gpt-5-mini";
+    const model = workerEnv.OPENAI_MODEL || "gpt-5.6-luna";
     if (!apiKey) return json({ error: "OPENAI_API_KEY is not configured on the Cloudflare Worker" }, 503, origin);
 
     const input = [
@@ -62,22 +62,30 @@ export default {
       { role: "user", content: message },
     ];
 
+    const makeRequest = async (withSearch: boolean) => fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify({
+        model,
+        instructions: `You are Hana, a warm but practical AI career and learning companion. Answer the user's actual message first. Adapt to their level and conversation history. For current information, links, universities, opportunities, dates, or niche facts, use web search when available. Never claim to have searched if you did not. Recent memory: ${memory || "none"}.`,
+        input,
+        ...(withSearch ? { tools: [{ type: "web_search" }] } : {}),
+        max_output_tokens: 1600,
+      }),
+    });
+
     try {
-      const response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: { "content-type": "application/json", authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model,
-          instructions: `You are Hana, a warm but practical AI career and learning companion. Answer the user's actual message first. Adapt to their level and conversation history. For current information, links, universities, opportunities, dates, or niche facts, use web search when available. Never claim to have searched if you did not. Recent memory: ${memory || "none"}.`,
-          input,
-          tools: [{ type: "web_search" }],
-          max_output_tokens: 1600,
-        }),
-      });
+      let response = await makeRequest(true);
+      if (!response.ok) {
+        const firstDetail = await response.text();
+        console.error("[Cloudflare Hana/OpenAI search request]", response.status, firstDetail);
+        // Retry without web search so a tool/model compatibility issue cannot break normal chat.
+        response = await makeRequest(false);
+      }
 
       if (!response.ok) {
         const detail = await response.text();
-        console.error("[Cloudflare Hana/OpenAI]", response.status, detail);
+        console.error("[Cloudflare Hana/OpenAI fallback request]", response.status, detail);
         return json({ error: "Hana AI request failed", provider: "openai", status: response.status }, 502, origin);
       }
 
