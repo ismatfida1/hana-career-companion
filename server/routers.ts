@@ -15,11 +15,7 @@ const careerPathSchema = z.enum(["computer-science", "software-engineering", "ai
 const chatHistorySchema = z.array(z.object({ role: z.enum(["user", "model"]), text: z.string().max(4000) })).max(12).default([]);
 
 function configuredAiProviders() {
-  return {
-    openai: Boolean(ENV.openaiApiKey),
-    gemini: Boolean(ENV.geminiApiKey),
-    forge: Boolean(ENV.forgeApiKey),
-  };
+  return { openai: Boolean(ENV.openaiApiKey), gemini: Boolean(ENV.geminiApiKey), forge: Boolean(ENV.forgeApiKey) };
 }
 
 export const appRouter = router({
@@ -44,27 +40,19 @@ export const appRouter = router({
       const systemPrompt = `You are Hana, a warm and practical career companion for a CS learner. Give one clear next step, explain concepts in plain language, and avoid arbitrary scores. Never claim to have done work the learner has not confirmed. Respect privacy controls. Keep recommendations aligned with the learner's selected career path unless they explicitly ask to explore another path. You can browse the web when current or niche information is needed. When you browse, prefer primary/official sources, verify dates and distinguish current facts from advice, and include useful source links. When recommending learning resources, prefer one high-fit interactive or university resource rather than a list. If a computational result is supplied, explain it clearly and distinguish the verified result from your explanation. Keep answers concise but useful, like a strong ChatGPT tutor.\n\n${context}`;
       const history = input.history.slice(-10);
       const providers = configuredAiProviders();
-
       if (!providers.openai && !providers.gemini && !providers.forge) {
         throw new TRPCError({ code: "PRECONDITION_FAILED", message: "Hana AI is not configured on this deployment. Add OPENAI_API_KEY (recommended), GEMINI_API_KEY, or BUILT_IN_FORGE_API_KEY to the server environment, then redeploy." });
       }
-
       try {
         let answer: string;
         let provider: "openai" | "forge" | "gemini";
         let sources: Array<{ title: string; url: string }> = [];
-
         if (providers.openai) {
           let enrichedPrompt = systemPrompt;
           const lower = input.message.toLowerCase();
           const likelyComputational = /\b(calculate|solve|convert|equation|percentage|percent|average|mean|median|probability|integral|derivative|factorial|square root|sqrt|kg|km|miles|celsius|fahrenheit)\b/.test(lower);
           if (likelyComputational) {
-            try {
-              const computation = await queryWolframAlpha(input.message);
-              if (computation.status === "ok") enrichedPrompt += `\n\nVerified Wolfram|Alpha computation:\n${computation.result}`;
-            } catch (error) {
-              console.warn("[Wolfram] optional computation failed", error);
-            }
+            try { const computation = await queryWolframAlpha(input.message); if (computation.status === "ok") enrichedPrompt += `\n\nVerified Wolfram|Alpha computation:\n${computation.result}`; } catch (error) { console.warn("[Wolfram] optional computation failed", error); }
           }
           const response = await invokeOpenAIHana({ systemPrompt: enrichedPrompt, history: history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), message: input.message, enableWebSearch: true });
           answer = response.answer;
@@ -81,12 +69,8 @@ export const appRouter = router({
           if (!answer) throw new Error("Forge returned no text");
           provider = "forge";
         }
-
         const savedConversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
-        if (userId && savedConversationId) {
-          await createChatMessage(userId, savedConversationId, "user", input.message);
-          await createChatMessage(userId, savedConversationId, "assistant", answer);
-        }
+        if (userId && savedConversationId) { await createChatMessage(userId, savedConversationId, "user", input.message); await createChatMessage(userId, savedConversationId, "assistant", answer); }
         return { answer, conversationId: savedConversationId, provider, sources };
       } catch (error) {
         console.error("[Hana AI] provider failed", error);
@@ -98,11 +82,9 @@ export const appRouter = router({
     profile: protectedProcedure.query(({ ctx }) => getLearnerProfile(ctx.user.id)), summary: protectedProcedure.query(({ ctx }) => getLearnerSummary(ctx.user.id)), missions: protectedProcedure.query(({ ctx }) => listLearnerMissions(ctx.user.id)), projects: protectedProcedure.query(({ ctx }) => listLearnerProjects(ctx.user.id)), savedOpportunities: protectedProcedure.query(({ ctx }) => listSavedOpportunities(ctx.user.id)), memory: protectedProcedure.query(({ ctx }) => listMemoryItems(ctx.user.id)), roadmap: protectedProcedure.query(({ ctx }) => listRoadmapStates(ctx.user.id)), conversations: protectedProcedure.query(({ ctx }) => listChatConversations(ctx.user.id)), messages: protectedProcedure.query(({ ctx }) => listChatMessages(ctx.user.id)), achievements: protectedProcedure.query(({ ctx }) => listAchievements(ctx.user.id)), settings: protectedProcedure.query(({ ctx }) => getLearnerSettings(ctx.user.id)), portfolioDrafts: protectedProcedure.query(({ ctx }) => listPortfolioDrafts(ctx.user.id)), deleteMemory: protectedProcedure.mutation(({ ctx }) => deleteMemoryItems(ctx.user.id)),
     updateMission: protectedProcedure.input(z.object({ missionId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentStep: z.string().min(1).max(64), state: z.enum(["not-started", "in-progress", "completed"]) })).mutation(({ ctx, input }) => updateMissionProgress(ctx.user.id, input.missionId, input.progress, input.currentStep, input.state)),
     saveOpportunity: protectedProcedure.input(z.object({ opportunityId: z.number().int().positive(), status: z.enum(["saved", "planning", "applied", "accepted", "rejected"]) })).mutation(({ ctx, input }) => upsertSavedOpportunity(ctx.user.id, input.opportunityId, input.status)),
-    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.projectId, input.progress, input.currentCheckpoint, input.status)),
+    updateProjectCheckpoint: protectedProcedure.input(z.object({ projectId: z.number().int().positive(), progress: z.number().int().min(0).max(100), currentCheckpoint: z.string().min(1).max(160), status: z.enum(["active", "completed", "archived"]).default("active") })).mutation(({ ctx, input }) => updateProjectCheckpoint(ctx.user.id, input.projectId, input.progress, input.currentCheckpoint, input.status)),
     savePortfolioDraft: protectedProcedure.input(z.object({ projectId: z.number().int().positive().optional(), kind: z.enum(["readme", "portfolio", "resume"]), content: z.string().min(1).max(10000) })).mutation(({ ctx, input }) => createPortfolioDraft(ctx.user.id, input.projectId, input.kind, input.content)),
     updateSettings: protectedProcedure.input(z.object({ hanaPersonality: z.string().max(64).optional(), preferredExplanationStyle: z.string().max(64).optional(), notificationsEnabled: z.boolean().optional(), voiceEnabled: z.boolean().optional(), memoryEnabled: z.boolean().optional() })).mutation(({ ctx, input }) => updateLearnerSettings(ctx.user.id, input)),
     saveProfile: protectedProcedure.input(z.object({ careerGoal: z.string().min(1).max(160), careerPath: careerPathSchema.default("computer-science"), experienceLevel: z.string().min(1).max(64), dailyMinutes: z.number().int().min(15).max(240), interests: z.string().max(1000).optional(), learningStyle: z.string().min(1).max(64), memoryEnabled: z.boolean().default(true) })).mutation(({ ctx, input }) => upsertLearnerProfile(ctx.user.id, input)),
   }),
 });
-
-type HanaHistory = Array<{ role: "user" | "model"; text: string }>;
