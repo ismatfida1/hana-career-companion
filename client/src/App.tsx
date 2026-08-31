@@ -20,7 +20,8 @@ import QuestDetail from "./pages/QuestDetail";
 function Router() {
   const base = typeof window !== "undefined" && window.location.hostname.endsWith("github.io") ? "/hana-career-companion" : "";
   return <WouterRouter base={base}><Switch>
-    <Route path="/" component={AdventureHome} />
+    <Route path="/" component={AdventureHub} />
+    <Route path="/title" component={AdventureHome} />
     <Route path="/journey" component={AdventureHub} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={MissionScene} />
