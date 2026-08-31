@@ -50,7 +50,7 @@ export const appRouter = router({
           const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, reasoning: { effort: "low" }, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] });
           const raw = response.choices[0]?.message?.content ?? ""; answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw; provider = "forge";
         } else if (ENV.geminiApiKey) { answer = await generateFreeHanaReply(systemPrompt, input.message, history); provider = "gemini"; }
-        else { answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science"); }
+        else { answer = buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science", history); }
         const savedConversationId = userId ? (input.conversationId ?? await createChatConversation(userId, input.message.slice(0, 120))) : null;
         if (userId && savedConversationId) { await createChatMessage(userId, savedConversationId, "user", input.message); await createChatMessage(userId, savedConversationId, "assistant", answer); }
         return { answer, conversationId: savedConversationId, provider, sources };
@@ -58,7 +58,7 @@ export const appRouter = router({
         console.error("[Hana AI] primary provider failed; trying fallbacks", error);
         try { if (ENV.geminiApiKey) return { answer: await generateFreeHanaReply(systemPrompt, input.message, history), conversationId: null, provider: "gemini" as const, sources: [] }; } catch (fallbackError) { console.error("[Hana AI] Gemini fallback failed", fallbackError); }
         try { if (ENV.forgeApiKey) { const response = await invokeLLM({ model: "gpt-5-mini", maxTokens: 900, messages: [{ role: "system", content: systemPrompt }, ...history.map(item => ({ role: item.role === "model" ? "assistant" as const : "user" as const, content: item.text })), { role: "user", content: input.message }] }); const raw = response.choices[0]?.message?.content ?? ""; const answer = Array.isArray(raw) ? raw.filter(part => part.type === "text").map(part => part.text).join("\n") : raw; if (answer) return { answer, conversationId: null, provider: "forge" as const, sources: [] }; } } catch (fallbackError) { console.error("[Hana AI] Forge fallback failed", fallbackError); }
-        return { answer: buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science"), conversationId: null, provider: "local" as const, sources: [] };
+        return { answer: buildLocalHanaReply(input.message, profile?.careerPath ?? "computer-science", history), conversationId: null, provider: "local" as const, sources: [] };
       }
     }),
   }),
@@ -75,10 +75,20 @@ export const appRouter = router({
 
 export type AppRouter = typeof appRouter;
 
-function buildLocalHanaReply(message: string, careerPath: string) {
+type HanaHistory = Array<{ role: "user" | "model"; text: string }>;
+
+function buildLocalHanaReply(message: string, careerPath: string, history: HanaHistory = []) {
   const lower = message.toLowerCase();
-  if (lower.includes("plan") || lower.includes("roadmap") || lower.includes("start")) return `Absolutely. For ${careerPath}, let's keep it simple: first choose one foundation skill, spend 20–30 minutes learning it, then build one tiny thing with it. Tell me what you already know and I'll help you choose the next step.`;
-  if (lower.includes("stuck") || lower.includes("confused") || lower.includes("don't know")) return "You're not behind. Let's shrink the problem. Tell me the exact concept or task that feels confusing, and I'll break it into one small step.";
-  if (lower.includes("project")) return "Let's make the next step practical. Pick a tiny project that uses the skill you're learning, and we'll turn it into 2–4 small checkpoints rather than one huge assignment.";
-  return "I'm Hana. I can help you choose your next learning step, explain a concept, plan a small project, or explore a career direction. What are you working on right now?";
+  const previous = history.filter(item => item.role === "user").slice(-2).map(item => item.text).join(" ");
+  if (/^(hi|hello|hey|assalam|salam)\b/.test(lower)) return `Hey! I'm Hana 🌿. I'm here with you. You're currently exploring ${careerPath.replace(/-/g, " ")}. What do you want to work on today—learning, a project, your roadmap, or university/career planning?`;
+  if (lower.includes("who are you") || lower.includes("what can you do")) return "I'm Hana, your CS career companion. I can explain concepts, help you plan what to learn next, break projects into small steps, discuss university and career choices, and help you get unstuck.";
+  if (lower.includes("plan") || lower.includes("roadmap") || lower.includes("start")) return `Absolutely. For ${careerPath.replace(/-/g, " ")}, let's take one step at a time. Start with one foundation skill, learn it for 20–30 minutes, then build a tiny example. If you tell me your current level, I'll help you choose the next step.`;
+  if (lower.includes("stuck") || lower.includes("confused") || lower.includes("don't know") || lower.includes("dont know")) return "That's okay—let's make the problem smaller. Tell me the exact concept, error, assignment, or decision you're stuck on. I'll help you work through it step by step.";
+  if (lower.includes("project")) return "Let's turn learning into something you can show. Tell me the skill or topic you want the project to use, and I'll suggest a small project with clear checkpoints.";
+  if (lower.includes("python")) return "Python is a great foundation. If you're starting out, I'd focus on variables, conditionals, loops, functions, lists/dictionaries, then a small project. Want me to give you a first 30-minute Python mission?";
+  if (lower.includes("api")) return "For APIs, think of them as a contract between programs: a client sends a request and a server returns a response. A good first mission is to inspect one JSON API response and identify its endpoint, method, status code, and data.";
+  if (lower.includes("github") || lower.includes("git ")) return "For GitHub, focus first on the simple flow: change files → git add → git commit → git push. Then make your repository useful to another person with a clear README.";
+  if (lower.includes("career") || lower.includes("job") || lower.includes("internship")) return `For a ${careerPath.replace(/-/g, " ")} path, build evidence alongside your learning: projects, GitHub work, problem-solving practice, and eventually internships or competitions. We can make a realistic plan from where you are now.`;
+  if (previous) return `I remember the direction of our conversation. You were talking about “${previous.slice(-120)}”. Tell me what you want to do with that next, and I'll help you turn it into a concrete step.`;
+  return "I'm Hana 🌿. Tell me what you're trying to learn, build, or decide, and we'll work through it together one step at a time.";
 }
