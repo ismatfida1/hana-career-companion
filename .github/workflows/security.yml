@@ -22,9 +22,9 @@ jobs:
           package_json_file: package.json
 
       - name: Setup Node
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
