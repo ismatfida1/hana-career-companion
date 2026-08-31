@@ -5,9 +5,9 @@ import { careerCatalog, defaultCareerPath } from "@/data/careerCatalog";
 const worlds = [
   ["Origin Village", "/assets/worlds/origin-village.svg", "Choose your direction"],
   ["Code Forge", "/assets/worlds/code-forge.svg", "Build foundations"],
-  ["Webwilds", "/assets/worlds/webwilds.svg", "Make useful things"],
-  ["Skyforge", "/assets/worlds/skyforge.svg", "Ship real projects"],
-  ["Beacon Summit", "/assets/worlds/beacon-summit.svg", "Show your work"],
+  ["Weblands", "/assets/worlds/webwilds.svg", "Make useful things"],
+  ["Cloudspire", "/assets/worlds/skyforge.svg", "Ship reliable projects"],
+  ["Summit of Builders", "/assets/worlds/beacon-summit.svg", "Show your work"],
 ] as const;
 
 const nextSteps = [
