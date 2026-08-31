@@ -1,0 +1,36 @@
+/* Emergency release hardening: keep HANA usable when Manus-hosted visual assets are unavailable. */
+.game-entry-bright,
+.game-entry-dark {
+  background-image: linear-gradient(90deg, rgba(248,245,231,.82) 0%, rgba(248,245,231,.35) 36%, rgba(15,40,48,.06) 76%), url('/assets/hana-phase1-approved-opening.png') !important;
+  background-position: center;
+  background-size: cover;
+}
+
+/* The cinematic opening asset is the canonical local visual already stored in the repo. */
+.game-entry-dark {
+  background-image: linear-gradient(90deg, rgba(3,12,28,.58) 0%, rgba(3,12,28,.22) 40%, rgba(4,13,29,.04) 76%), url('/assets/hana-phase1-approved-opening.png') !important;
+}
+
+/* Replace unavailable remote world artwork with the canonical local HANA artwork. */
+.roadmap-vision,
+.chat-vision-world {
+  background-image: url('/assets/hana-phase1-approved-opening.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: scroll;
+}
+.roadmap-vision-art,
+.chat-vision-art {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Make the local companion fallback the first choice visually. */
+.hana-avatar img {
+  background: #142737;
+}
+
+/* Keep the submission demo polished even when backend data is unavailable. */
+.app-content:has(.chat-vision-world) {
+  background: transparent;
+}
