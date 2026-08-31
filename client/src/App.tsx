@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdventureHome from "./pages/AdventureHome";
+import AdventureMenu from "./pages/AdventureMenu";
 import JourneyStart from "./pages/JourneyStart";
 import CareerPath from "./pages/CareerPath";
 import MissionScene from "./pages/MissionScene";
@@ -21,7 +22,7 @@ function Router() {
   return <WouterRouter base={base}><Switch>
     <Route path="/" component={AdventureHome} />
     <Route path="/title" component={AdventureHome} />
-    <Route path="/journey" component={JourneyStart} />
+    <Route path="/journey" component={AdventureMenu} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={MissionScene} />
     <Route path="/quest" component={QuestDetail} />
@@ -34,8 +35,8 @@ function Router() {
     <Route path="/onboarding" component={JourneyStart} />
     <Route path="/path" component={JourneyStart} />
     <Route path="/career-path" component={CareerPath} />
-    <Route path="/adventure" component={AdventureHome} />
-    <Route path="/legacy-adventure" component={AdventureHome} />
+    <Route path="/adventure" component={AdventureMenu} />
+    <Route path="/legacy-adventure" component={AdventureMenu} />
     <Route path="/:rest*" component={NotFound} />
     <Route component={NotFound} />
   </Switch></WouterRouter>;
@@ -64,5 +65,5 @@ function DynamicDateFix() {
 }
 
 export default function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="dark" switchable><TooltipProvider><Toaster/><Router/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster/><Router/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
