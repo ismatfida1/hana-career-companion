@@ -36,17 +36,17 @@ export default function AdventureHome() {
         </div>
       </header>
 
-      <main className="relative flex min-h-[100svh] items-center px-5 pb-10 pt-24 sm:px-9">
-        <div className="mx-auto grid w-full max-w-7xl items-center gap-4 lg:grid-cols-[1fr_44%]">
-          <div className={`relative z-20 max-w-2xl transition-all duration-1000 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
+      <main className="relative flex min-h-[100svh] items-center overflow-hidden px-5 pb-16 pt-20 sm:px-9">
+        <div className="relative mx-auto w-full max-w-7xl lg:grid lg:grid-cols-[1fr_44%] lg:items-center lg:gap-4">
+          <div className={`relative z-20 max-w-[78%] sm:max-w-2xl transition-all duration-1000 ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-5 opacity-0"}`}>
             <p className={`text-[10px] font-bold uppercase tracking-[.48em] drop-shadow-md sm:text-xs ${dark ? "text-[#f1c77b]" : "text-[#2e786b]"}`}>YOUR CS ADVENTURE</p>
             <h1 className={`mt-2 font-display text-7xl font-semibold tracking-[.06em] drop-shadow-[0_5px_25px_rgba(0,0,0,.7)] sm:text-9xl ${dark ? "text-white" : "text-[#173c3c]"}`}>HANA</h1>
             <p className={`mt-3 font-display text-lg uppercase tracking-[.2em] drop-shadow-lg sm:text-2xl ${dark ? "text-[#f8ead0]" : "text-[#2b5e59]"}`}>The journey begins.</p>
-            <p className={`mx-auto mt-5 max-w-xl text-sm leading-7 drop-shadow-md sm:mx-0 sm:text-base ${dark ? "text-white/85" : "text-[#315a58]/80"}`}>
+            <p className={`mt-5 max-w-xl text-sm leading-6 drop-shadow-md sm:text-base sm:leading-7 ${dark ? "text-white/85" : "text-[#315a58]/80"}`}>
               Enter the fantasy-tech world. Hana guides you through learning, building, opportunities, and your path into computer science.
             </p>
 
-            <div className="mt-9 flex flex-wrap gap-4">
+            <div className="mt-7 sm:mt-9 flex flex-wrap gap-4">
               <GameButton onClick={() => navigate("/journey")} className="min-w-56 border-2 border-[#e9c56f] bg-gradient-to-b from-[#2f725f] to-[#174b40] text-[#fff8e8] shadow-[0_8px_0_#12382f,0_0_35px_rgba(241,199,123,.35)] hover:from-[#3b846d] hover:to-[#205a4d] hover:shadow-[0_9px_0_#12382f,0_0_48px_rgba(241,199,123,.5)]">
                 <span className="mr-2 text-[#f1c77b]">✦</span>
                 <Play className="mr-2 h-4 w-4 fill-current" />
@@ -55,21 +55,21 @@ export default function AdventureHome() {
                 <span className="ml-2 text-[#f1c77b]">✦</span>
               </GameButton>
             </div>
-            <p className={`mt-5 text-xs uppercase tracking-[.25em] ${dark ? "text-[#f5dfb2]/80" : "text-[#35655f]/70"}`}>One quest at a time.</p>
+            <p className={`mt-4 text-xs uppercase tracking-[.25em] ${dark ? "text-[#f5dfb2]/80" : "text-[#35655f]/70"}`}>One quest at a time.</p>
           </div>
 
-          <div className={`relative flex min-h-[300px] items-end justify-center lg:min-h-[600px] lg:justify-end transition-all duration-1000 delay-150 ${isLoaded ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
-            <div className={`absolute bottom-10 right-[12%] h-64 w-64 rounded-full blur-3xl ${dark ? "bg-[#7774ff]/25" : "bg-[#58b89f]/25"}`} aria-hidden="true" />
-            <img src="/assets/hana-phase1-approved-opening.png" alt="Hana, your AI career companion" className="relative z-10 h-[330px] w-[320px] object-contain object-bottom drop-shadow-[0_28px_35px_rgba(0,0,0,.48)] sm:h-[420px] sm:w-[400px] lg:h-[570px] lg:w-[500px]" />
+          <div className={`pointer-events-none absolute bottom-0 right-[-5%] z-10 flex h-[360px] w-[58%] items-end justify-end lg:relative lg:right-auto lg:h-[600px] lg:w-auto lg:justify-end transition-all duration-1000 delay-150 ${isLoaded ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"}`}>
+            <div className={`absolute bottom-8 right-[12%] h-56 w-56 rounded-full blur-3xl ${dark ? "bg-[#7774ff]/25" : "bg-[#58b89f]/25"}`} aria-hidden="true" />
+            <img src="/assets/hana-phase1-approved-opening.png" alt="Hana, your AI career companion" className="relative z-10 h-[300px] w-[285px] object-contain object-bottom drop-shadow-[0_28px_35px_rgba(0,0,0,.48)] sm:h-[390px] sm:w-[370px] lg:h-[570px] lg:w-[500px]" />
           </div>
         </div>
       </main>
 
-      <nav className={`absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 flex-wrap justify-center gap-1 rounded-full border p-2 shadow-[0_10px_35px_rgba(0,0,0,.25)] backdrop-blur-xl ${dark ? "border-[#f1c77b]/25 bg-[#071722]/55" : "border-[#477f74]/20 bg-white/50"}`}>
-        <button onClick={() => navigate("/roadmap")} className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Roadmap</button>
-        <button onClick={() => navigate("/projects")} className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Projects</button>
-        <button onClick={() => navigate("/opportunities")} className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Opportunities</button>
-        <button onClick={() => navigate("/chat")} className={`rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider transition ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Ask Hana</button>
+      <nav className={`absolute bottom-3 left-1/2 z-30 flex max-w-[calc(100%-1rem)] -translate-x-1/2 flex-wrap justify-center gap-1 rounded-full border p-1.5 shadow-[0_10px_35px_rgba(0,0,0,.25)] backdrop-blur-xl ${dark ? "border-[#f1c77b]/25 bg-[#071722]/55" : "border-[#477f74]/20 bg-white/50"}`}>
+        <button onClick={() => navigate("/roadmap")} className={`rounded-full px-3 py-2 text-[9px] font-bold uppercase tracking-wider transition sm:px-4 sm:text-[10px] ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Roadmap</button>
+        <button onClick={() => navigate("/projects")} className={`rounded-full px-3 py-2 text-[9px] font-bold uppercase tracking-wider transition sm:px-4 sm:text-[10px] ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Projects</button>
+        <button onClick={() => navigate("/opportunities")} className={`rounded-full px-3 py-2 text-[9px] font-bold uppercase tracking-wider transition sm:px-4 sm:text-[10px] ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Opportunities</button>
+        <button onClick={() => navigate("/chat")} className={`rounded-full px-3 py-2 text-[9px] font-bold uppercase tracking-wider transition sm:px-4 sm:text-[10px] ${dark ? "text-[#f8ead0]/75 hover:bg-[#f1c77b]/15 hover:text-white" : "text-[#315a58]/75 hover:bg-white/60 hover:text-[#173c3c]"}`}>Ask Hana</button>
       </nav>
     </FantasyBackground>
   );
