@@ -1,66 +1,55 @@
 import { BookOpen, ExternalLink, GraduationCap, Play, ScrollText, Sparkles, Wrench, Zap, Crown, Bot } from "lucide-react";
 import { useLocation } from "wouter";
 import { masterResourceLibrary, type ResourceItem } from "@/data/resourceLibrary";
+import { curatedBook, curatedVideo } from "@/data/curatedLearningResources";
 
 type ResourceType = "university" | "youtube" | "book" | "docs" | "online" | "interactive";
 type Resource = { title: string; url: string; type: ResourceType; alternative: { title: string; url: string }; note?: string };
 type UniversityOption = { name: string; curriculum: string };
-
-const labels: Record<ResourceType, string> = {
-  university: "University curriculum",
-  youtube: "Best free video",
-  book: "Free/open book",
-  docs: "Official documentation",
-  online: "Free online learning",
-  interactive: "Free practice",
-};
+const labels: Record<ResourceType, string> = { university: "University curriculum", youtube: "Best free video", book: "Free/open book", docs: "Official documentation", online: "Free online learning", interactive: "Free practice" };
 const icons = { university: GraduationCap, youtube: Play, book: BookOpen, docs: ScrollText, online: ExternalLink, interactive: Wrench } as const;
 const skillKeyHints: Array<[string, keyof typeof masterResourceLibrary]> = [["algorithm", "foundations"], ["data structure", "foundations"], ["programming", "programming"], ["python", "python"], ["javascript", "javascript"], ["typescript", "typescript"], ["react", "react"], ["node", "node"], ["api", "rest"], ["http", "rest"], ["database", "databases"], ["sql", "databases"], ["mongodb", "mongodb"], ["redis", "redis"], ["java", "java"], ["spring", "spring"], [".net", "dotnet"], ["c++", "cpp"], ["rust", "rust"], ["go", "go"], ["kotlin", "kotlin"], ["swift", "swift"], ["flutter", "flutter"], ["mobile", "reactNative"], ["graphql", "graphql"], ["ai", "aiEngineering"], ["machine learning", "aiEngineering"], ["llm", "aiEngineering"], ["agent", "agents"], ["prompt", "prompting"], ["data science", "dataScience"], ["data", "dataScience"], ["cyber", "cybersecurity"], ["security", "cybersecurity"], ["design", "design"], ["accessibility", "accessibility"], ["performance", "performance"], ["open source", "openSource"], ["git", "git"], ["github", "github"], ["web", "web"], ["html", "html"], ["css", "css"]];
 function findLibrary(skill: string): ResourceItem[] { const normalized = ` ${skill.toLowerCase()} `; const key = skillKeyHints.find(([hint]) => normalized.includes(hint))?.[1]; return key ? masterResourceLibrary[key] ?? [] : masterResourceLibrary.foundations ?? []; }
-const youtubeUrl = (query: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${query} free full course tutorial`)}`;
-const openLibraryUrl = (query: string) => `https://openlibrary.org/search?q=${encodeURIComponent(query)}`;
-const freeDomains = ["freecodecamp.org", "cs50.harvard.edu", "ocw.mit.edu", "developer.mozilla.org", "react.dev", "nodejs.org", "typescriptlang.org", "python.org", "docs.python.org", "developer.android.com", "kotlinlang.org", "go.dev", "rust-lang.org", "doc.rust-lang.org", "docs.github.com", "git-scm.com", "openlibrary.org", "archive.org", "w3.org", "web.dev", "roadmap.sh", "youtube.com", "youtu.be", "edx.org", "csadvising.seas.harvard.edu", "seas.harvard.edu", "catalog.mit.edu", "cs.stanford.edu"];
+const freeDomains = ["freecodecamp.org", "cs50.harvard.edu", "ocw.mit.edu", "developer.mozilla.org", "react.dev", "nodejs.org", "typescriptlang.org", "python.org", "docs.python.org", "developer.android.com", "kotlinlang.org", "go.dev", "rust-lang.org", "doc.rust-lang.org", "docs.github.com", "git-scm.com", "openlibrary.org", "archive.org", "w3.org", "web.dev", "roadmap.sh", "youtube.com", "youtu.be", "edx.org", "csadvising.seas.harvard.edu", "seas.harvard.edu", "catalog.mit.edu", "cs.stanford.edu", "automatetheboringstuff.com", "eloquentjavascript.net", "philip.greenspun.com", "teachyourselfcs.com"];
 function isFreeUrl(url: string) { try { const host = new URL(url).hostname.replace(/^www\./, ""); return freeDomains.some(domain => host === domain || host.endsWith(`.${domain}`)); } catch { return false; } }
-
 const universityAlternatives: UniversityOption[] = [
-  { name: "Harvard Computer Science", curriculum: "https://csadvising.seas.harvard.edu/concentration/requirements/" },
-  { name: "MIT Computer Science", curriculum: "https://catalog.mit.edu/degree-charts/computer-science-engineering-course-6-3/" },
-  { name: "Stanford Computer Science", curriculum: "https://www.cs.stanford.edu/bs-degree-requirements" },
+  { name: "Harvard Computer Science degree requirements", curriculum: "https://csadvising.seas.harvard.edu/concentration/requirements/" },
+  { name: "MIT Computer Science and Engineering degree chart", curriculum: "https://catalog.mit.edu/degree-charts/computer-science-engineering-course-6-3/" },
+  { name: "Stanford Computer Science BS requirements", curriculum: "https://www.cs.stanford.edu/bs-degree-requirements" },
 ];
-
 function buildResources(skill: string, university?: UniversityOption): Resource[] {
-  const library = findLibrary(skill);
-  const free = library.filter(item => isFreeUrl(item.url));
-  const primary = free.find(item => item.role === "primary") ?? free[0];
-  const documentation = free.find(item => item.role === "documentation") ?? free.find(item => item.role === "advanced");
-  const practice = free.find(item => item.role === "practice" || item.role === "project") ?? free[0];
+  const library = findLibrary(skill).filter(item => isFreeUrl(item.url));
+  const primary = library.find(item => item.role === "primary") ?? library[0];
+  const documentation = library.find(item => item.role === "documentation") ?? library.find(item => item.role === "advanced");
+  const practice = library.find(item => item.role === "practice" || item.role === "project") ?? library[0];
+  const video = curatedVideo(skill) ?? { title: `${skill} — free video course`, url: "https://www.youtube.com/@freecodecamp/search?query=" + encodeURIComponent(skill) };
+  const book = curatedBook(skill);
   const fallback = { title: "freeCodeCamp", url: "https://www.freecodecamp.org/learn/" };
   const docsFallback = { title: "MDN Web Docs", url: "https://developer.mozilla.org/" };
   const uni = university ?? universityAlternatives[0];
   const uniAlt = universityAlternatives.find(item => item.url !== uni.curriculum) ?? universityAlternatives[1];
   return [
-    { title: uni.name, url: uni.curriculum, type: "university", alternative: { title: uniAlt.name, url: uniAlt.curriculum }, note: "Official curriculum/degree requirements. Hana can compare this with your roadmap; nothing is changed automatically." },
-    { title: `${skill} — best free video`, url: youtubeUrl(skill), type: "youtube", alternative: { title: `${skill} — alternative full-course search`, url: youtubeUrl(`${skill} beginner`) }, note: "Free YouTube results only. Prefer a complete, reputable tutorial and avoid paid courses." },
-    { title: `${skill} — open/free book options`, url: openLibraryUrl(`${skill} computer science`), type: "book", alternative: { title: "Internet Archive open books", url: `https://archive.org/search?query=${encodeURIComponent(skill + " computer science")}` }, note: "Open Library lists books that may be readable/borrowable for free; availability varies." },
+    { title: uni.name, url: uni.curriculum, type: "university", alternative: { title: uniAlt.name, url: uniAlt.curriculum }, note: "Official degree requirements. Hana compares this with your roadmap only after you ask; it never changes your roadmap automatically." },
+    { title: video.title, url: video.url, type: "youtube", alternative: { title: "freeCodeCamp channel search", url: "https://www.youtube.com/@freecodecamp/search?query=" + encodeURIComponent(skill) }, note: "Selected free video/course from a reputable educational channel; the alternative is a channel-level backup." },
+    { title: book.title, url: book.url, type: "book", alternative: { title: "Teach Yourself Computer Science", url: "https://teachyourselfcs.com/" }, note: "Free/open web book or textbook-style resource. Availability and licensing can vary by title." },
     { title: documentation?.title ?? `${skill} documentation`, url: documentation?.url ?? docsFallback.url, type: "docs", alternative: { title: docsFallback.title, url: docsFallback.url } },
     { title: primary?.title ?? "Free CS learning path", url: primary?.url ?? fallback.url, type: "online", alternative: { title: "MIT OpenCourseWare", url: "https://ocw.mit.edu/" } },
-    { title: practice?.title ?? "freeCodeCamp practice", url: practice?.url ?? fallback.url, type: "interactive", alternative: { title: fallback.title, url: fallback.url } },
+    { title: practice?.title ?? "freeCodeCamp practice", url: practice?.url ?? fallback.url, type: "interactive", alternative: { title: "freeCodeCamp", url: fallback.url } },
   ];
 }
-
 export default function LearningResources({ skill, skills, university }: { skill: string; skills?: string[]; university?: UniversityOption }) {
   const [, navigate] = useLocation();
   const requested = Array.from(new Set([...(skills ?? []), skill].filter(Boolean)));
   const focus = requested[0] ?? skill;
   const resources = buildResources(focus, university);
-  const small = `Build a tiny ${focus} project that demonstrates the core idea and can be finished in one focused session.`;
-  const large = `Build a portfolio-ready ${focus} project with a real user flow, error handling, documentation, testing, and deployment.`;
-  const hana = (mode: string) => navigate(`/chat?prompt=${encodeURIComponent(`Build with Hana: ${mode} project for the learning step ${focus}. Guide me deeply from setup to implementation, explain why each decision is made, give me practical checkpoints, and help debug when I get stuck.`)}`);
-  return <section className="rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6">
-    <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.14em] text-white/40">Learning kit · {requested.length > 1 ? `${requested.length} skills in this step` : "this step"}</p><h3 className="mt-1 font-display text-2xl font-semibold">Everything you need to learn it</h3><p className="mt-1 text-sm text-white/50">Six source categories, each with an alternative. Free/open sources are preferred.</p></div><Sparkles className="h-5 w-5 shrink-0 text-[#f1c77b]"/></div>
+  const small = `Build a tiny ${focus} project that proves the core idea in one focused session.`;
+  const large = `Build a portfolio-ready ${focus} project with a real user flow, validation, testing, documentation, and deployment.`;
+  const hana = (mode: string) => navigate(`/chat?prompt=${encodeURIComponent(`Build With Hana: ${mode} for ${focus}. Guide me step by step, explain decisions, give checkpoints, and help debug when I get stuck.`)}`);
+  return <section className="min-w-0 rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6">
+    <div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/40">Learning kit · {requested.length > 1 ? `${requested.length} skills in this step` : "this step"}</p><h3 className="mt-1 break-words font-display text-2xl font-semibold">Everything you need to learn it</h3><p className="mt-1 text-sm text-white/50">Six source categories, each with an alternative. Free/open sources are preferred.</p></div><Sparkles className="h-5 w-5 shrink-0 text-[#f1c77b]"/></div>
     {requested.length > 1 && <div className="mt-4 flex flex-wrap gap-2">{requested.slice(0, 6).map(item => <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/65">{item}</span>)}</div>}
-    <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{resources.map(resource => { const Icon = icons[resource.type]; return <article key={`${resource.type}-${resource.title}`} className="flex min-h-[210px] min-w-0 flex-col rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Icon className="h-4 w-4"/>{labels[resource.type]}</div><p className="mt-3 min-h-10 break-words text-sm font-semibold text-white">{resource.title}</p>{resource.note && <p className="mt-1 break-words text-xs leading-5 text-white/40">{resource.note}</p>}<a href={resource.url} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex w-fit min-h-10 items-center gap-2 rounded-full bg-[#f1c77b] px-3 py-2 text-xs font-bold text-[#172630]">Open <ExternalLink className="h-3.5 w-3.5"/></a><a href={resource.alternative.url} target="_blank" rel="noopener noreferrer" className="mt-2 block break-words text-xs font-semibold text-white/50 underline">Alternative: {resource.alternative.title}</a></article>; })}</div>
-    <div className="mt-5 grid gap-3 md:grid-cols-2"><article className="rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Zap className="h-4 w-4"/>Small Quest</div><h4 className="mt-2 font-semibold text-white">Quick proof of learning</h4><p className="mt-2 text-sm leading-6 text-white/55">{small}</p><button onClick={()=>hana("small quest")} className="mt-3 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#172630]">Build Small Quest with Hana</button></article><article className="rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Crown className="h-4 w-4"/>Grand Quest</div><h4 className="mt-2 font-semibold text-white">Portfolio-depth build</h4><p className="mt-2 text-sm leading-6 text-white/55">{large}</p><button onClick={()=>hana("grand quest")} className="mt-3 rounded-full bg-[#f1c77b] px-3 py-2 text-xs font-bold text-[#172630]">Build Grand Quest with Hana</button></article></div>
+    <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-2 xl:grid-cols-3">{resources.map(resource => { const Icon = icons[resource.type]; return <article key={`${resource.type}-${resource.title}`} className="flex min-h-[210px] min-w-0 overflow-hidden rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex min-w-0 flex-1 flex-col"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Icon className="h-4 w-4 shrink-0"/>{labels[resource.type]}</div><p className="mt-3 min-h-10 break-words text-sm font-semibold text-white">{resource.title}</p>{resource.note && <p className="mt-1 break-words text-xs leading-5 text-white/40">{resource.note}</p>}<a href={resource.url} target="_blank" rel="noopener noreferrer" className="mt-auto inline-flex min-h-10 w-fit max-w-full items-center gap-2 rounded-full bg-[#f1c77b] px-3 py-2 text-xs font-bold text-[#172630]">Open <ExternalLink className="h-3.5 w-3.5 shrink-0"/></a><a href={resource.alternative.url} target="_blank" rel="noopener noreferrer" className="mt-2 block max-w-full break-words text-xs font-semibold text-white/50 underline">Alternative: {resource.alternative.title}</a></div></article>; })}</div>
+    <div className="mt-5 grid gap-3 md:grid-cols-2"><article className="min-w-0 rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Zap className="h-4 w-4"/>Small Quest</div><h4 className="mt-2 font-semibold text-white">Quick proof of learning</h4><p className="mt-2 text-sm leading-6 text-white/55">{small}</p><button onClick={()=>hana("Small Quest")} className="mt-3 rounded-full bg-white px-3 py-2 text-xs font-bold text-[#172630]">Build Small Quest with Hana</button></article><article className="min-w-0 rounded-2xl border border-white/10 bg-[#132434]/80 p-4"><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#f1c77b]"><Crown className="h-4 w-4"/>Grand Quest</div><h4 className="mt-2 font-semibold text-white">Portfolio-depth build</h4><p className="mt-2 text-sm leading-6 text-white/55">{large}</p><button onClick={()=>hana("Grand Quest")} className="mt-3 rounded-full bg-[#f1c77b] px-3 py-2 text-xs font-bold text-[#172630]">Build Grand Quest with Hana</button></article></div>
     <button onClick={()=>hana("deep detailed Build With Hana journey")} className="mt-3 inline-flex min-h-10 items-center gap-2 text-xs font-bold text-white/55 underline"><Bot className="h-3.5 w-3.5"/>Build With Hana · deep detailed mode</button>
   </section>;
 }
