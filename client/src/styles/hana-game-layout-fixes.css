@@ -1,29 +1,118 @@
-/* Shared release-candidate layout guardrails.
-   Keep the existing fantasy artwork and visual identity; this file only prevents
-   content collisions and accidental media cropping across game routes. */
-.hana-game-frame { position: relative; isolation: isolate; min-height: 100svh; overflow-x: clip; }
-.hana-game-frame .hana-game-world { position: relative; width: 100%; min-width: 0; overflow: hidden; }
-.hana-game-frame .hana-game-world-art { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-width: 100%; object-fit: contain; object-position: center; }
-.hana-game-frame .hana-game-world-overlay { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.hana-game-frame .hana-game-world-content { position: relative; z-index: 2; min-width: 0; width: 100%; }
-.hana-game-frame .hana-game-content { position: relative; z-index: 10; min-width: 0; width: 100%; overflow: visible; }
-.hana-game-frame .hana-game-content > * { min-width: 0; max-width: 100%; }
-.hana-game-frame img:not(.hana-game-world-art) { max-width: 100%; height: auto; }
-.hana-game-frame a, .hana-game-frame button { max-width: 100%; }
-.hana-game-frame a { overflow-wrap: anywhere; }
-.hana-game-frame button { white-space: normal; }
-.hana-game-frame input, .hana-game-frame textarea, .hana-game-frame select { min-width: 0; max-width: 100%; }
-.hana-game-frame .hana-game-nav { position: sticky; top: 0; z-index: 100; width: 100%; min-width: 0; }
-.hana-game-frame .hana-game-nav > div { min-width: 0; }
-.hana-game-frame .hana-game-nav button, .hana-game-frame .hana-game-nav a { flex: 0 0 auto; }
+/* HANA GAME UI — release layout guardrails.
+   Preserve the existing fantasy artwork. These rules make every route
+   participate in one predictable responsive layout and prevent crossover. */
+.hana-game-frame {
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-wrap: anywhere;
+  box-sizing: border-box;
+}
+.hana-game-frame *,
+.hana-game-frame *::before,
+.hana-game-frame *::after { box-sizing: border-box; }
 
-/* Defensive containment for common grid/flex patterns used by the existing pages. */
-.hana-game-frame .grid, .hana-game-frame .flex, .hana-game-frame [class*="grid-cols-"] { min-width: 0; }
-.hana-game-frame .grid > *, .hana-game-frame .flex > * { min-width: 0; max-width: 100%; }
-.hana-game-frame [class*="overflow-hidden"] { max-width: 100%; }
-.hana-game-frame .break-words, .hana-game-frame .truncate { overflow-wrap: anywhere; }
+.hana-game-frame .hana-game-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+.hana-game-frame .hana-game-nav > div { min-width: 0; max-width: 100%; }
+.hana-game-frame .hana-game-nav button,
+.hana-game-frame .hana-game-nav a { flex: 0 0 auto; min-width: 0; }
+.hana-game-frame .hana-game-nav h1,
+.hana-game-frame .hana-game-nav p { min-width: 0; max-width: 100%; }
+
+/* The world scene is the only intentionally layered area. */
+.hana-game-frame .hana-game-world {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+.hana-game-frame .hana-game-world-art {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+}
+.hana-game-frame .hana-game-world-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.hana-game-frame .hana-game-world-content {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Everything below the world stays in normal document flow. */
+.hana-game-frame .hana-game-content {
+  position: relative;
+  z-index: 10;
+  display: flow-root;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+.hana-game-frame .hana-game-content > * {
+  min-width: 0;
+  max-width: 100%;
+}
+.hana-game-frame .hana-game-content section,
+.hana-game-frame .hana-game-content article,
+.hana-game-frame .hana-game-content form,
+.hana-game-frame .hana-game-content aside,
+.hana-game-frame .hana-game-content nav { min-width: 0; max-width: 100%; }
+
+/* Prevent common Tailwind grid/flex children from creating horizontal overflow. */
+.hana-game-frame .grid,
+.hana-game-frame .flex,
+.hana-game-frame [class*="grid-cols-"] { min-width: 0; max-width: 100%; }
+.hana-game-frame .grid > *,
+.hana-game-frame .flex > * { min-width: 0; max-width: 100%; }
+.hana-game-frame [class*="grid-cols-"] > * { min-width: 0; max-width: 100%; }
+
+.hana-game-frame img,
+.hana-game-frame video,
+.hana-game-frame canvas,
+.hana-game-frame svg { max-width: 100%; }
+.hana-game-frame img:not(.hana-game-world-art),
+.hana-game-frame video { height: auto; }
+.hana-game-frame a { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
+.hana-game-frame button { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+.hana-game-frame input,
+.hana-game-frame textarea,
+.hana-game-frame select { min-width: 0; max-width: 100%; }
+.hana-game-frame textarea { resize: vertical; }
+.hana-game-frame pre,
+.hana-game-frame code { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+/* Cards and panels should never create a second positioning system. */
+.hana-game-frame .hana-game-content > .absolute,
+.hana-game-frame .hana-game-content > [class*="absolute"] { position: relative !important; inset: auto !important; }
 
 @media (max-width: 639px) {
+  .hana-game-frame { overflow-x: hidden; }
   .hana-game-frame .hana-game-world { min-height: 155px; }
   .hana-game-frame .hana-game-world-art { opacity: .26; padding: .5rem; }
   .hana-game-frame .hana-game-world-content { min-height: 155px; }
@@ -37,5 +126,6 @@
   .hana-game-frame .hana-game-world-content { min-height: 220px; }
 }
 
-/* Never allow a full-screen child inside the game frame to escape the frame. */
-.hana-game-frame [class~="fixed"][class*="inset-0"] { max-width: 100vw; }
+/* Long resource URLs and external-link labels must not widen the page. */
+.hana-game-frame [href^="http"],
+.hana-game-frame [data-url] { overflow-wrap: anywhere; word-break: break-word; }
