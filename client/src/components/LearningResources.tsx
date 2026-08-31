@@ -24,11 +24,6 @@ const universityAlternatives: UniversityOption[] = [
   { name: "Stanford Computer Science BS requirements", curriculum: "https://www.cs.stanford.edu/bs-degree-requirements" },
 ];
 
-/**
- * Stable stage identity derived from the roadmap's exact skill set. This avoids
- * relying on fragile array indexes or a separate stepId that the catalog does
- * not currently carry.
- */
 function stageKey(skills: string[]): string {
   const normalized = new Set(skills.map(item => item.trim().toLowerCase()));
   if (normalized.has("data structures") && normalized.has("debugging")) return "algorithms";
@@ -67,23 +62,23 @@ function stageSpecificLibrary(stage: string): ResourceItem[] {
   switch (stage) {
     case "algorithms": return [...pick("foundations"), ...pick("python"), ...pick("openSource")];
     case "product": return [...pick("web"), ...pick("javascript"), ...pick("rest")];
-    case "systems": return [...pick("databases"), ...pick("node"), ...pick("docker")];
+    case "systems": return [...pick("databases"), ...pick("node")];
     case "specialize": return [...pick("openSource"), ...pick("github"), ...pick("git")];
     case "ai-foundations": return [...pick("python"), ...pick("dataScience"), ...pick("aiEngineering")];
     case "machine-learning": return [...pick("aiEngineering"), ...pick("dataScience")];
-    case "deep-learning": return [...pick("aiEngineering"), ...pick("pytorch"), ...pick("tensorflow")];
+    case "deep-learning": return [...pick("aiEngineering"), ...pick("tensorflow")];
     case "ai-engineering": return [...pick("aiEngineering"), ...pick("agents"), ...pick("prompting")];
     case "data-analysis": return [...pick("dataScience"), ...pick("python")];
     case "data-modeling": return [...pick("dataScience"), ...pick("aiEngineering")];
     case "security-foundations": return [...pick("cybersecurity"), ...pick("foundations")];
-    case "defensive-security": return [...pick("cybersecurity"), ...pick("authentication")];
+    case "defensive-security": return [...pick("cybersecurity")];
     case "application-security": return [...pick("cybersecurity"), ...pick("rest")];
-    case "infrastructure-security": return [...pick("cybersecurity"), ...pick("cloud")];
+    case "infrastructure-security": return [...pick("cybersecurity")];
     case "web-foundations": return [...pick("web"), ...pick("html"), ...pick("css")];
     case "client-server": return [...pick("react"), ...pick("node"), ...pick("rest")];
-    case "production": return [...pick("databases"), ...pick("docker")];
+    case "production": return [...pick("databases"), ...pick("node")];
     case "professional-engineering": return [...pick("openSource"), ...pick("github"), ...pick("git")];
-    case "engineering-foundations": return [...pick("programming"), ...pick("git"), ...pick("testing")];
+    case "engineering-foundations": return [...pick("programming"), ...pick("git")];
     case "application-architecture": return [...pick("rest"), ...pick("programming")];
     case "decision-impact": return [...pick("dataScience"), ...pick("openSource")];
     case "security-portfolio": return [...pick("cybersecurity"), ...pick("openSource")];
@@ -93,15 +88,8 @@ function stageSpecificLibrary(stage: string): ResourceItem[] {
 
 function buildResources(skills: string[], university?: UniversityOption): Resource[] {
   const unique = new Map<string, ResourceItem>();
-  const stage = stageKey(skills);
-  for (const item of stageSpecificLibrary(stage)) {
-    if (isFreeUrl(item.url) && !unique.has(item.url)) unique.set(item.url, item);
-  }
-  for (const skill of skills) {
-    for (const item of findLibrary(skill)) {
-      if (isFreeUrl(item.url) && !unique.has(item.url)) unique.set(item.url, item);
-    }
-  }
+  for (const item of stageSpecificLibrary(stageKey(skills))) if (isFreeUrl(item.url) && !unique.has(item.url)) unique.set(item.url, item);
+  for (const skill of skills) for (const item of findLibrary(skill)) if (isFreeUrl(item.url) && !unique.has(item.url)) unique.set(item.url, item);
   const library = [...unique.values()];
   const primary = library.find(item => item.role === "primary") ?? library[0];
   const documentation = library.find(item => item.role === "documentation") ?? library.find(item => item.role === "advanced") ?? library[1];
@@ -113,7 +101,6 @@ function buildResources(skills: string[], university?: UniversityOption): Resour
   const uni = university ?? universityAlternatives[0];
   const uniAlt = universityAlternatives.find(item => item.curriculum !== uni.curriculum) ?? universityAlternatives[1];
   const nextAlternative = library.find(item => item.url !== primary?.url && item.url !== documentation?.url && item.url !== practice?.url);
-
   return [
     { title: uni.name, url: uni.curriculum, type: "university", alternative: { title: uniAlt.name, url: uniAlt.curriculum }, note: "Official degree requirements. Hana compares this with your roadmap only after you ask; it never changes your roadmap automatically." },
     { title: video.title, url: video.url, type: "youtube", alternative: { title: "freeCodeCamp channel search", url: "https://www.youtube.com/@freecodecamp/search?query=" + encodeURIComponent(focus) }, note: curatedVideo(focus) ? "Curated free educational video." : "Reputable free-channel search for this stage." },
@@ -130,7 +117,6 @@ export default function LearningResources({ skill, skills, university }: { skill
   const focus = requested[0] ?? skill;
   const resources = buildResources(requested, university);
   const hana = (mode: "Small Quest" | "Grand Quest" | "Build With Hana") => navigate(`/chat?prompt=${encodeURIComponent(`${mode}: ${focus}. You are Hana, my build companion. Guide me one milestone at a time, explain the important decisions, give me a concrete checkpoint after each milestone, and help me debug instead of taking over.`)}`);
-
   return <section className="min-w-0 rounded-[30px] border border-white/10 bg-white/[.055] p-5 shadow-xl backdrop-blur sm:p-6">
     <div className="flex items-center justify-between gap-3"><div className="min-w-0"><p className="text-xs font-bold uppercase tracking-[.14em] text-white/40">Learning kit · {stageKey(requested)}</p><h3 className="mt-1 break-words font-display text-2xl font-semibold">Everything you need to learn it</h3><p className="mt-1 text-sm text-white/50">Resources are selected for this exact roadmap stage, then enriched with its skills.</p></div><Sparkles className="h-5 w-5 shrink-0 text-[#f1c77b]"/></div>
     {requested.length > 1 && <div className="mt-4 flex flex-wrap gap-2">{requested.slice(0, 6).map(item => <span key={item} className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-semibold text-white/65">{item}</span>)}</div>}
