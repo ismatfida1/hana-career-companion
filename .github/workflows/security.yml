@@ -34,7 +34,11 @@ jobs:
       - name: Check for accidentally committed API keys
         shell: bash
         run: |
-          if git grep -nI -E '(sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|OPENAI_API_KEY=[^$[:space:]]+|GEMINI_API_KEY=[^$[:space:]]+|DEEPSEEK_API_KEY=[^$[:space:]]+)' -- ':!*.lock' ':!.github/*'; then
+          set -euo pipefail
+          # Search tracked application/config files, excluding workflow files so the
+          # scanner's own detection regex cannot trigger a false positive.
+          if git grep -nI -E '(sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|OPENAI_API_KEY=[^$[:space:]]+|GEMINI_API_KEY=[^$[:space:]]+|DEEPSEEK_API_KEY=[^$[:space:]]+)' -- . ':(exclude).github/**' ':(exclude)*.lock'; then
             echo 'Potential API secret found in repository contents.'
             exit 1
           fi
+          echo 'No API-key patterns found in tracked application/config files.'
