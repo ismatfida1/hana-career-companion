@@ -9,6 +9,7 @@ import AdventureHome from "./pages/AdventureHome";
 import JourneyStart from "./pages/JourneyStart";
 import Home from "./pages/Home";
 import CareerPath from "./pages/CareerPath";
+import MissionScene from "./pages/MissionScene";
 import Research from "./pages/Research";
 import Projects from "./pages/Projects";
 import Opportunities from "./pages/Opportunities";
@@ -20,7 +21,7 @@ function Router() {
   return <WouterRouter base={base}><Switch>
     <Route path="/" component={AdventureHome} />
     <Route path="/roadmap" component={CareerPath} />
-    <Route path="/mission" component={CareerPath} />
+    <Route path="/mission" component={MissionScene} />
     <Route path="/projects" component={Projects} />
     <Route path="/opportunities" component={Opportunities} />
     <Route path="/chat" component={HanaChat} />
