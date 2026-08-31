@@ -1,131 +1,33 @@
-/* HANA GAME UI — release layout guardrails.
-   Preserve the existing fantasy artwork. These rules make every route
-   participate in one predictable responsive layout and prevent crossover. */
-.hana-game-frame {
-  position: relative;
-  isolation: isolate;
-  min-height: 100svh;
-  width: 100%;
-  max-width: 100%;
-  overflow-x: clip;
-  overflow-wrap: anywhere;
-  box-sizing: border-box;
-}
-.hana-game-frame *,
-.hana-game-frame *::before,
-.hana-game-frame *::after { box-sizing: border-box; }
+/* HANA shared layout guardrails: one positioning context, no route crossover. */
+.hana-game-frame{position:relative;isolation:isolate;width:100%;min-height:100svh;max-width:100%;overflow-x:hidden;box-sizing:border-box}
+.hana-game-frame *,.hana-game-frame *::before,.hana-game-frame *::after{box-sizing:border-box}
+.hana-game-frame .hana-game-nav{position:sticky;top:0;z-index:100;width:100%;min-width:0;max-width:100%}
+.hana-game-frame .hana-game-nav>div{width:100%;min-width:0;max-width:100%}
+.hana-game-frame .hana-game-nav button,.hana-game-frame .hana-game-nav a{min-width:0;max-width:100%;flex:0 0 auto}
+.hana-game-frame .hana-game-world{position:relative;isolation:isolate;width:100%;min-width:0;max-width:100%;overflow:hidden}
+.hana-game-frame .hana-game-world-art{position:absolute;inset:0;z-index:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center;pointer-events:none}
+.hana-game-frame .hana-game-world-content{position:relative;z-index:2;width:100%;min-width:0;max-width:100%}
+.hana-game-frame .hana-game-content{position:relative;z-index:10;display:block;width:100%;min-width:0;max-width:100%;overflow:visible}
+.hana-game-frame .hana-game-content>*{min-width:0;max-width:100%}
+.hana-game-frame .grid,.hana-game-frame .flex,.hana-game-frame [class*="grid-cols-"]{min-width:0;max-width:100%}
+.hana-game-frame .grid>*,.hana-game-frame .flex>*,.hana-game-frame [class*="grid-cols-"]>*{min-width:0;max-width:100%}
+.hana-game-frame img,.hana-game-frame video,.hana-game-frame canvas,.hana-game-frame svg{max-width:100%}
+.hana-game-frame img:not(.hana-game-world-art),.hana-game-frame video{height:auto}
+.hana-game-frame a{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+.hana-game-frame button{max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere}
+.hana-game-frame input,.hana-game-frame textarea,.hana-game-frame select{min-width:0;max-width:100%}
+.hana-game-frame pre,.hana-game-frame code{max-width:100%;overflow-x:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 
-.hana-game-frame .hana-game-nav {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-}
-.hana-game-frame .hana-game-nav > div { min-width: 0; max-width: 100%; }
-.hana-game-frame .hana-game-nav button,
-.hana-game-frame .hana-game-nav a { flex: 0 0 auto; min-width: 0; }
-.hana-game-frame .hana-game-nav h1,
-.hana-game-frame .hana-game-nav p { min-width: 0; max-width: 100%; }
+/* Never let page-level absolute children escape their flow container. */
+.hana-game-frame .hana-game-content>.absolute,.hana-game-frame .hana-game-content>[class*="absolute"]{position:relative!important;inset:auto!important;transform:none!important}
 
-/* The world scene is the only intentionally layered area. */
-.hana-game-frame .hana-game-world {
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  overflow: hidden;
+@media(max-width:639px){
+ .hana-game-frame .hana-game-world{min-height:230px}
+ .hana-game-frame .hana-game-world-content{min-height:230px}
+ .hana-game-frame .hana-game-content{padding-bottom:1.25rem}
 }
-.hana-game-frame .hana-game-world-art {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  object-fit: contain;
-  object-position: center;
-  pointer-events: none;
+@media(min-width:640px){
+ .hana-game-frame .hana-game-world{min-height:300px}
+ .hana-game-frame .hana-game-world-content{min-height:300px}
 }
-.hana-game-frame .hana-game-world-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-}
-.hana-game-frame .hana-game-world-content {
-  position: relative;
-  z-index: 2;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-}
-
-/* Everything below the world stays in normal document flow. */
-.hana-game-frame .hana-game-content {
-  position: relative;
-  z-index: 10;
-  display: flow-root;
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-}
-.hana-game-frame .hana-game-content > * {
-  min-width: 0;
-  max-width: 100%;
-}
-.hana-game-frame .hana-game-content section,
-.hana-game-frame .hana-game-content article,
-.hana-game-frame .hana-game-content form,
-.hana-game-frame .hana-game-content aside,
-.hana-game-frame .hana-game-content nav { min-width: 0; max-width: 100%; }
-
-/* Prevent common Tailwind grid/flex children from creating horizontal overflow. */
-.hana-game-frame .grid,
-.hana-game-frame .flex,
-.hana-game-frame [class*="grid-cols-"] { min-width: 0; max-width: 100%; }
-.hana-game-frame .grid > *,
-.hana-game-frame .flex > * { min-width: 0; max-width: 100%; }
-.hana-game-frame [class*="grid-cols-"] > * { min-width: 0; max-width: 100%; }
-
-.hana-game-frame img,
-.hana-game-frame video,
-.hana-game-frame canvas,
-.hana-game-frame svg { max-width: 100%; }
-.hana-game-frame img:not(.hana-game-world-art),
-.hana-game-frame video { height: auto; }
-.hana-game-frame a { max-width: 100%; overflow-wrap: anywhere; word-break: break-word; }
-.hana-game-frame button { max-width: 100%; min-width: 0; white-space: normal; overflow-wrap: anywhere; }
-.hana-game-frame input,
-.hana-game-frame textarea,
-.hana-game-frame select { min-width: 0; max-width: 100%; }
-.hana-game-frame textarea { resize: vertical; }
-.hana-game-frame pre,
-.hana-game-frame code { max-width: 100%; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
-
-/* Cards and panels should never create a second positioning system. */
-.hana-game-frame .hana-game-content > .absolute,
-.hana-game-frame .hana-game-content > [class*="absolute"] { position: relative !important; inset: auto !important; }
-
-@media (max-width: 639px) {
-  .hana-game-frame { overflow-x: hidden; }
-  .hana-game-frame .hana-game-world { min-height: 155px; }
-  .hana-game-frame .hana-game-world-art { opacity: .26; padding: .5rem; }
-  .hana-game-frame .hana-game-world-content { min-height: 155px; }
-  .hana-game-frame .hana-game-content { padding-bottom: 1.25rem; }
-  .hana-game-frame .hana-game-nav { min-height: 60px; }
-  .hana-game-frame .hana-game-nav h1 { max-width: 45vw; }
-}
-
-@media (min-width: 640px) {
-  .hana-game-frame .hana-game-world { min-height: 220px; }
-  .hana-game-frame .hana-game-world-content { min-height: 220px; }
-}
-
-/* Long resource URLs and external-link labels must not widen the page. */
-.hana-game-frame [href^="http"],
-.hana-game-frame [data-url] { overflow-wrap: anywhere; word-break: break-word; }
+.hana-game-frame [href^="http"],.hana-game-frame [data-url]{overflow-wrap:anywhere;word-break:break-word}
