@@ -1,55 +1,54 @@
-import { Play, Volume2, VolumeX } from "lucide-react";
-import { useLocation } from "wouter";
-import { useState, useEffect } from "react";
+import { ArrowRight, Play, Volume2, VolumeX } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { FantasyBackground } from "@/components/FantasyBackground";
+import { FantasyFrame } from "@/components/FantasyFrame";
+import { GameButton } from "@/components/GameButton";
 
 export default function AdventureHome() {
   const [, navigate] = useLocation();
   const [isMuted, setIsMuted] = useState(true);
   const [isLoaded, setIsLoaded] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoaded(true), 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleStart = () => {
-    navigate("/journey-start");
-  };
+  useEffect(() => { const timer = window.setTimeout(() => setIsLoaded(true), 450); return () => window.clearTimeout(timer); }, []);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0d1b2a]">
-      <div className="absolute inset-0 z-0">
-        <div className="w-full h-full bg-gradient-to-b from-[#1a2a3a] via-[#0d1b2a] to-[#0a1520]">
-          <div className="absolute top-10 left-10 text-6xl opacity-20">🏰</div>
-          <div className="absolute bottom-20 right-10 text-8xl opacity-10">🌙</div>
-          <div className="absolute top-1/3 left-1/4 text-4xl opacity-15">✨</div>
-          <div className="absolute bottom-1/3 right-1/4 text-5xl opacity-15">🌿</div>
-          {Array.from({ length: 50 }).map((_, i) => (
-            <div key={i} className="absolute w-0.5 h-0.5 bg-white rounded-full animate-twinkle" style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 3}s`, opacity: 0.3 + Math.random() * 0.7 }} />
-          ))}
+    <FantasyBackground imageUrl="/assets/worlds/origin-village.svg" overlayClassName="bg-gradient-to-b from-[#06131e]/35 via-[#06131e]/55 to-[#06131e]/95">
+      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-5 py-5 sm:px-9">
+        <span className="font-display text-xl tracking-[.22em] text-[#f1c77b]">HANA</span>
+        <div className="flex gap-2">
+          <button type="button" onClick={() => setIsMuted(value => !value)} className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur transition hover:bg-white/10" aria-label={isMuted ? "Unmute" : "Mute"}>{isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}</button>
+          <Link href="/settings" className="rounded-full border border-white/20 bg-black/30 px-4 py-2.5 text-xs font-bold uppercase tracking-[.14em] text-white backdrop-blur hover:bg-white/10">Options</Link>
         </div>
-      </div>
-      <div className="absolute z-10 top-1/4 left-1/2 -translate-x-1/2 animate-float">
-        <div className="relative">
-          <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-b from-[#f1c77b] to-[#d4a050] flex items-center justify-center shadow-2xl shadow-[#f1c77b]/20 border-4 border-[#f1c77b]/30"><span className="text-6xl md:text-7xl">🤖</span></div>
-          <div className="absolute -inset-4 rounded-full border-2 border-[#f1c77b]/10 animate-pulse" />
-          <div className="absolute -inset-8 rounded-full border border-[#f1c77b]/5 animate-pulse delay-300" />
+      </header>
+
+      <main className="relative flex min-h-screen items-center justify-center px-4 pb-20 pt-24">
+        <div className={`grid w-full max-w-6xl items-center gap-8 transition-all duration-1000 lg:grid-cols-[1fr_390px] ${isLoaded ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"}`}>
+          <div className="max-w-2xl text-center lg:text-left">
+            <p className="text-[10px] font-bold uppercase tracking-[.4em] text-[#f1c77b]">YOUR CS ADVENTURE</p>
+            <h1 className="mt-2 font-display text-6xl font-semibold tracking-[.04em] text-white sm:text-8xl">HANA</h1>
+            <p className="mt-3 font-display text-lg uppercase tracking-[.2em] text-white/80 sm:text-2xl">The journey begins.</p>
+            <p className="mx-auto mt-5 max-w-xl text-sm leading-7 text-white/75 sm:text-base lg:mx-0">Enter the fantasy-tech world. Hana guides you through learning, building, opportunities, and your path into computer science.</p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+              <GameButton onClick={() => navigate("/journey")}><Play className="mr-2 h-4 w-4 fill-current" />Start Journey<ArrowRight className="ml-1 h-4 w-4" /></GameButton>
+              <Link href="/opportunities" className="inline-flex min-h-11 items-center rounded-full border border-white/25 bg-black/20 px-5 py-3 text-xs font-bold uppercase tracking-[.12em] text-white backdrop-blur hover:bg-white/10">Explore Opportunities</Link>
+            </div>
+          </div>
+
+          <FantasyFrame className="mx-auto w-full max-w-[390px] bg-[#071722]/55 text-white backdrop-blur-sm">
+            <div className="flex aspect-[4/5] items-end justify-center overflow-hidden rounded-2xl bg-black/10 p-3">
+              <img src="/assets/hana-phase1-approved-opening.png" alt="Hana, your CS adventure companion" className="h-full w-full object-contain drop-shadow-[0_0_45px_rgba(90,225,230,.35)]" />
+            </div>
+            <p className="mt-3 text-center text-sm text-white/80"><span className="font-semibold text-[#f1c77b]">Hana:</span> Ready when you are. One quest at a time.</p>
+          </FantasyFrame>
         </div>
-      </div>
-      <div className="relative z-20 min-h-screen flex flex-col items-center justify-center px-4">
-        <div className="absolute top-4 right-4 flex gap-3">
-          <button onClick={() => setIsMuted(!isMuted)} className="p-2 rounded-full bg-black/40 backdrop-blur-sm border border-white/10 text-white/60 hover:text-white hover:border-white/30 transition">{isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>
-        </div>
-        <div className={`text-center transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
-          <div className="mb-2"><span className="text-xs tracking-[0.3em] text-[#f1c77b]/60 font-mono">HANA OPTIONS</span></div>
-          <h1 className="text-7xl md:text-8xl font-bold text-white mb-2 tracking-tight">HANA</h1>
-          <p className="text-lg md:text-xl text-white/70 max-w-md mx-auto mb-8 font-light">Your CS Adventure</p>
-          <p className="text-sm text-white/50 max-w-sm mx-auto mb-10 leading-relaxed">The journey begins. Enter the fantasy-tech world. Hana will guide you through learning, building, opportunities, and your path into computer science.</p>
-          <button onClick={handleStart} className="group relative inline-flex items-center gap-3 px-10 py-4 rounded-full bg-gradient-to-r from-[#f1c77b] to-[#e8b86d] text-[#0d1b2a] font-bold text-lg shadow-lg shadow-[#f1c77b]/20 hover:shadow-[#f1c77b]/40 transition-all hover:scale-105 active:scale-95"><Play size={20} className="fill-[#0d1b2a]" />Start Journey</button>
-        </div>
-        <div className="absolute bottom-8 flex gap-8 text-xs text-white/30 font-mono tracking-wider"><span>Roadmap</span><span>Projects</span><span>Opportunities</span><span>Ask Hana</span></div>
-      </div>
-      <style>{`@keyframes float { 0%, 100% { transform: translate(-50%, 0px); } 50% { transform: translate(-50%, -12px); } } @keyframes twinkle { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } } .animate-float { animation: float 4s ease-in-out infinite; } .animate-twinkle { animation: twinkle 2s ease-in-out infinite; }`}</style>
-    </div>
+      </main>
+
+      <nav className="absolute bottom-4 left-1/2 z-30 flex -translate-x-1/2 flex-wrap justify-center gap-1 rounded-full border border-white/10 bg-black/40 p-2 backdrop-blur-xl">
+        <Link href="/roadmap" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 hover:text-white">Roadmap</Link>
+        <Link href="/projects" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 hover:text-white">Projects</Link>
+        <Link href="/opportunities" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 hover:text-white">Opportunities</Link>
+        <Link href="/chat" className="rounded-full px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-white/70 hover:bg-white/10 hover:text-white">Ask Hana</Link>
+      </nav>
+    </FantasyBackground>
   );
 }
