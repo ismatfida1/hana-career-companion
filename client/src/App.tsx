@@ -64,5 +64,5 @@ function DynamicDateFix() {
 }
 
 export default function App() {
-  return <ErrorBoundary><ThemeProvider defaultTheme="light" switchable><TooltipProvider><Toaster/><Router/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
+  return <ErrorBoundary><ThemeProvider defaultTheme="dark" switchable><TooltipProvider><Toaster/><Router/><DynamicDateFix/></TooltipProvider></ThemeProvider></ErrorBoundary>;
 }
