@@ -1,0 +1,100 @@
+/* Hana Phase 1 cinematic title/menu completion */
+.game-menu-item-selected::before{
+  border-color:var(--game-border);
+  box-shadow:0 0 22px rgba(141,119,255,.18),inset 0 0 18px rgba(141,119,255,.06);
+}
+.game-menu-index{
+  color:var(--game-accent-strong);
+  font-family:'Unbounded',sans-serif;
+  font-size:.6rem;
+  font-weight:600;
+  letter-spacing:.08em;
+}
+.game-menu-label{
+  color:inherit;
+  font-family:'Unbounded',sans-serif;
+  font-size:.68rem;
+  font-weight:600;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+.game-menu-description{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  color:var(--game-muted);
+  font-size:.72rem;
+  line-height:1.4;
+}
+.game-menu-arrow{
+  color:var(--game-accent-strong);
+  font-size:1rem;
+  text-align:center;
+  opacity:.72;
+  transition:transform .2s ease,opacity .2s ease;
+}
+.game-menu-item:hover .game-menu-arrow,.game-menu-item-selected .game-menu-arrow{
+  opacity:1;
+  transform:translateX(3px);
+}
+.game-menu-hint{
+  margin-top:18px;
+  color:var(--game-muted);
+  font-size:.58rem;
+  letter-spacing:.08em;
+}
+.game-entry-footer{
+  left:7.5%;
+  right:7.5%;
+  bottom:4.5%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  color:var(--game-muted);
+  font-family:'Unbounded',sans-serif;
+  font-size:.48rem;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.game-entry-footer span:last-child{opacity:.72}
+
+@keyframes game-drift{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,2%,0) scale(1.03)}}
+@keyframes game-mist{from{transform:translate3d(-2%,0,0) scale(.98)}to{transform:translate3d(3%,-3%,0) scale(1.05)}}
+@keyframes game-button-breathe{0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 22px rgba(145,253,225,.16)}50%{box-shadow:0 0 0 1px rgba(255,255,255,.1),0 0 34px rgba(145,253,225,.3)}}
+@keyframes game-sweep{0%,55%{left:-35%;opacity:0}65%{opacity:1}85%{left:125%;opacity:0}100%{left:125%;opacity:0}}
+@keyframes game-companion-idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+@media(max-width:760px){
+  .game-entry::before{inset:10px;border-radius:18px}
+  .game-entry-copy{left:7%;top:4.5%;font-size:.48rem}
+  .game-kicker{display:none}
+  .game-title-block{left:7%;top:14%;max-width:88%}
+  .game-title-block h1{font-size:clamp(3rem,17vw,5rem);letter-spacing:-.09em}
+  .game-title-subtitle{font-size:.62rem;letter-spacing:.12em}
+  .game-title-description{max-width:58%;margin-top:14px;font-size:.75rem;line-height:1.5}
+  .game-entry-actions{margin-top:20px;gap:8px}
+  .game-action-button,.game-action-secondary{min-height:43px;font-size:.6rem}
+  .game-action-primary{padding:0 18px}
+  .game-companion-stage{right:-2%;bottom:7%;min-height:310px;width:58vw}
+  .game-companion{max-height:42vh;width:min(100%,235px)}
+  .game-portal{right:3%;bottom:4%;height:250px;width:180px}
+  .game-companion-caption{display:none}
+  .game-menu-panel{left:7%;top:12%;max-width:90%}
+  .game-menu-panel h1{font-size:clamp(2rem,10vw,3.2rem)}
+  .game-menu-list{margin-top:22px;gap:4px}
+  .game-menu-item{grid-template-columns:24px minmax(110px,34vw) minmax(0,1fr) 16px;width:92vw;min-height:49px;padding:0 9px}
+  .game-menu-label{font-size:.56rem}
+  .game-menu-description{font-size:.57rem}
+  .game-menu-hint{font-size:.48rem;margin-top:11px}
+  .game-entry-footer{left:7%;right:7%;bottom:2.5%;font-size:.4rem}
+}
+
+@media(max-width:430px){
+  .game-title-description{display:none}
+  .game-companion-stage{right:-7%;bottom:8%;width:62vw;min-height:290px}
+  .game-companion{max-height:37vh;width:210px}
+  .game-menu-item{grid-template-columns:22px minmax(100px,34vw) minmax(0,1fr) 14px}
+  .game-menu-description{display:none}
+}
