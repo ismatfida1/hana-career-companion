@@ -1,7 +1,66 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-<title id="title">Origin Village fantasy world</title><desc id="desc">A warm fantasy village with a learning gate, lanterns, hills and a coding shrine.</desc>
-<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff4e7"/><stop offset="1" stop-color="#d9efe7"/></linearGradient><linearGradient id="hill" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#91bfae"/><stop offset="1" stop-color="#5f9684"/></linearGradient></defs>
-<rect width="1600" height="900" fill="url(#sky)"/><circle cx="1290" cy="160" r="86" fill="#ffe1a8" opacity=".9"/><path d="M0 610 C240 480 390 540 580 610 C770 680 930 500 1160 585 C1360 660 1440 530 1600 500 V900 H0Z" fill="url(#hill)"/><path d="M0 720 C270 640 470 680 650 745 C850 820 1040 660 1230 710 C1390 750 1490 690 1600 650 V900 H0Z" fill="#416f67" opacity=".7"/>
-<g fill="#fffaf4" stroke="#456e65" stroke-width="8"><path d="M250 590 l120 -120 120 120 v150 h-240z"/><path d="M1010 540 l130 -150 130 150 v190 h-260z"/></g><g fill="#e9917d"><circle cx="310" cy="610" r="16"/><circle cx="1090" cy="585" r="16"/></g>
-<path d="M730 730 C700 620 760 500 800 470 C840 500 900 620 870 730Z" fill="#315d58" stroke="#f9f1e7" stroke-width="12"/><path d="M800 470 V380 M750 415 L800 360 L850 415" fill="none" stroke="#e9c88f" stroke-width="16" stroke-linecap="round"/><g fill="#e9c88f"><circle cx="130" cy="580" r="14"/><circle cx="1470" cy="610" r="14"/><circle cx="560" cy="530" r="12"/></g>
+<title id="title">Hana Origin Village</title>
+<desc id="desc">An immersive moonlit fantasy village with a glowing learning gate, layered mountains, forests, lanterns, cottages and a winding path.</desc>
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#081a2b"/><stop offset=".48" stop-color="#15384a"/><stop offset="1" stop-color="#315c57"/></linearGradient>
+  <radialGradient id="moon"><stop stop-color="#fff4c7" stop-opacity="1"/><stop offset="1" stop-color="#f5c978" stop-opacity="0"/></radialGradient>
+  <linearGradient id="mountain" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#2e5960"/><stop offset="1" stop-color="#122f3c"/></linearGradient>
+  <linearGradient id="ground" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#254f4c"/><stop offset="1" stop-color="#071e29"/></linearGradient>
+  <linearGradient id="path" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b58a5b"/><stop offset="1" stop-color="#5c4638"/></linearGradient>
+  <linearGradient id="gate" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#5aa184"/><stop offset="1" stop-color="#173f42"/></linearGradient>
+  <filter id="glow"><feGaussianBlur stdDeviation="18" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<!-- cinematic sky -->
+<rect width="1600" height="900" fill="url(#sky)"/>
+<circle cx="1280" cy="155" r="150" fill="url(#moon)"/>
+<circle cx="1280" cy="155" r="54" fill="#fff2c5" opacity=".95"/>
+<g fill="#f6df9d" opacity=".75">
+ <circle cx="160" cy="130" r="2"/><circle cx="235" cy="210" r="3"/><circle cx="390" cy="105" r="2"/><circle cx="520" cy="175" r="2"/><circle cx="690" cy="95" r="3"/><circle cx="820" cy="205" r="2"/><circle cx="990" cy="115" r="2"/><circle cx="1110" cy="245" r="2"/><circle cx="1450" cy="95" r="3"/><circle cx="1510" cy="260" r="2"/>
+</g>
+<!-- distant mountains -->
+<path d="M0 500 L210 300 350 455 560 230 770 480 980 260 1180 470 1390 280 1600 480 V900 H0Z" fill="url(#mountain)"/>
+<path d="M0 575 C180 470 310 500 470 565 C640 635 770 500 920 555 C1080 615 1210 480 1390 545 C1490 580 1550 540 1600 515 V900 H0Z" fill="#193e45"/>
+<!-- forest silhouettes -->
+<g fill="#0a2932" opacity=".96">
+ <path d="M40 590 l55 -125 55 125 h-28 l50 90 h-70 l30 80 H0 l30-80 h-70 l50-90z"/>
+ <path d="M180 610 l48-110 48 110 h-25 l45 75 h-65 l28 72 h-80 l28-72 h-64 l45-75z"/>
+ <path d="M1370 595 l55-125 55 125 h-28 l50 90 h-70 l30 80 h-110 l30-80 h-70 l50-90z"/>
+ <path d="M1510 625 l42-105 42 105 h-20 l38 65 h-55 l25 70 h-85 l25-70 h-55 l38-65z"/>
+</g>
+<!-- village ground -->
+<path d="M0 610 C250 535 390 600 560 650 C760 710 880 565 1080 630 C1280 695 1430 580 1600 625 V900 H0Z" fill="url(#ground)"/>
+<!-- cottages -->
+<g stroke="#142f38" stroke-width="8" stroke-linejoin="round">
+ <path d="M150 690 L150 560 L285 465 L420 560 L420 700 Z" fill="#b76e57"/>
+ <path d="M115 570 L285 425 L455 570 L420 595 L285 485 L150 595Z" fill="#553b46"/>
+ <rect x="205" y="595" width="55" height="105" rx="5" fill="#f2c875"/>
+ <rect x="320" y="570" width="45" height="52" rx="4" fill="#8ec0bb"/>
+ <path d="M1080 680 L1080 545 L1215 455 L1350 545 L1350 700 Z" fill="#a86250"/>
+ <path d="M1045 555 L1215 415 L1385 555 L1350 580 L1215 475 L1080 580Z" fill="#493745"/>
+ <rect x="1140" y="585" width="55" height="115" rx="5" fill="#f0c46d"/>
+ <rect x="1255" y="555" width="45" height="52" rx="4" fill="#8ec0bb"/>
+</g>
+<!-- winding road -->
+<path d="M785 900 C790 820 720 770 770 720 C825 665 890 645 805 585 C760 555 770 520 800 500 C845 530 875 565 850 605 C820 655 925 690 860 745 C805 790 850 845 900 900Z" fill="url(#path)" opacity=".95"/>
+<path d="M795 900 C805 825 750 780 795 735" fill="none" stroke="#d4ac75" stroke-width="7" opacity=".5"/>
+<!-- central learning shrine/gate -->
+<g>
+ <ellipse cx="800" cy="590" rx="150" ry="105" fill="#66c8a0" opacity=".16" filter="url(#soft)"/>
+ <path d="M690 675 V500 Q800 365 910 500 V675" fill="url(#gate)" stroke="#d7b56e" stroke-width="14"/>
+ <path d="M735 675 V525 Q800 445 865 525 V675" fill="#071d29" stroke="#e6c47b" stroke-width="8"/>
+ <path d="M800 445 V350 M750 400 L800 340 L850 400" fill="none" stroke="#e6c47b" stroke-width="13" stroke-linecap="round"/>
+ <circle cx="800" cy="520" r="27" fill="#ffe7a0" filter="url(#glow)"/>
+ <path d="M782 510 h36 v25 h-36z M788 502 h24 v8 h-24z" fill="#fff4c5"/>
+</g>
+<!-- lanterns -->
+<g stroke="#d7b56e" stroke-width="7" fill="#ffd98b">
+ <path d="M530 520 V620"/><path d="M1070 520 V620"/><path d="M515 545 h30 v45 h-30z"/><path d="M1055 545 h30 v45 h-30z"/>
+</g>
+<g fill="#ffd98b" opacity=".45" filter="url(#glow)"><circle cx="530" cy="565" r="22"/><circle cx="1070" cy="565" r="22"/></g>
+<!-- foreground rocks/grass -->
+<g fill="#0b2831"><path d="M0 790 l120-65 95 75 80-50 110 80 100-60 120 85 v45 H0Z"/><path d="M1130 775 l100-70 100 55 95-70 175 95 100-55 v170 h-570Z"/></g>
+<g stroke="#5f9980" stroke-width="5" opacity=".75"><path d="M90 830 l15-45 M120 835 l5-55 M145 835 l20-50 M1430 835 l-10-55 M1460 840 l5-65 M1490 840 l18-55"/></g>
+<!-- subtle vignette -->
+<rect width="1600" height="900" fill="none" stroke="#050f18" stroke-width="80" opacity=".28"/>
 </svg>
