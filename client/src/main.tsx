@@ -9,6 +9,7 @@ import "./index.css";
 import "./layout-hardening.css";
 import "./styles/hana-game-layout-fixes.css";
 import "./styles/hana-home-layout-fixes.css";
+import "./styles/hana-phase1-cinematic.css";
 
 const queryClient = new QueryClient();
 
