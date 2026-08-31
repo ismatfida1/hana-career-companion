@@ -19,15 +19,16 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          package_json_file: package.json
+          version: 10.34.4
 
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          package-manager-cache: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
 
       - name: Dependency audit (production runtime)
         continue-on-error: true
@@ -39,8 +40,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # Search tracked application/config files, excluding workflow files so the
-          # scanner's own detection regex cannot trigger a false positive.
           if git grep -nI -E '(sk-[A-Za-z0-9]{20,}|AIza[0-9A-Za-z_-]{20,}|OPENAI_API_KEY=[^$[:space:]]+|GEMINI_API_KEY=[^$[:space:]]+|DEEPSEEK_API_KEY=[^$[:space:]]+)' -- . ':(exclude).github/**' ':(exclude)*.lock'; then
             echo 'Potential API secret found in repository contents.'
             exit 1
