@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Router as WouterRouter, Switch, useLocation } from "wouter";
 import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -16,7 +16,8 @@ import HanaChat from "./pages/HanaChat";
 import CareerHub from "./pages/CareerHub";
 
 function Router() {
-  return <Switch>
+  const base = typeof window !== "undefined" && window.location.hostname.endsWith("github.io") ? "/hana-career-companion" : "";
+  return <WouterRouter base={base}><Switch>
     <Route path="/" component={AdventureHome} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={CareerPath} />
@@ -34,7 +35,7 @@ function Router() {
     <Route path="/legacy-adventure" component={AdventureHome} />
     <Route path="/:rest*" component={NotFound} />
     <Route component={NotFound} />
-  </Switch>;
+  </Switch></WouterRouter>;
 }
 
 function DynamicDateFix() {

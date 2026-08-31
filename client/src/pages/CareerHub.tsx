@@ -6,9 +6,9 @@ import HanaGameFrame from "@/components/HanaGameFrame";
 const worlds = [
   ["Origin Village", "/assets/worlds/origin-village.svg", "Choose a direction"],
   ["Code Forge", "/assets/worlds/code-forge.svg", "Learn the foundations"],
-  ["Webwilds", "/assets/worlds/webwilds.svg", "Make something useful"],
-  ["Skyforge", "/assets/worlds/skyforge.svg", "Build and ship"],
-  ["Beacon Summit", "/assets/worlds/beacon-summit.svg", "Show your work"],
+  ["Weblands", "/assets/worlds/webwilds.svg", "Make something useful"],
+  ["Cloudspire", "/assets/worlds/skyforge.svg", "Build and ship"],
+  ["Summit of Builders", "/assets/worlds/beacon-summit.svg", "Show your work"],
 ] as const;
 
 export default function CareerHub() {
