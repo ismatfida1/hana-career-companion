@@ -6,7 +6,6 @@ import { useEffect } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import AdventureHome from "./pages/AdventureHome";
-import AdventureHub from "./pages/AdventureHub";
 import JourneyStart from "./pages/JourneyStart";
 import CareerPath from "./pages/CareerPath";
 import MissionScene from "./pages/MissionScene";
@@ -20,9 +19,9 @@ import QuestDetail from "./pages/QuestDetail";
 function Router() {
   const base = typeof window !== "undefined" && window.location.hostname.endsWith("github.io") ? "/hana-career-companion" : "";
   return <WouterRouter base={base}><Switch>
-    <Route path="/" component={AdventureHub} />
+    <Route path="/" component={AdventureHome} />
     <Route path="/title" component={AdventureHome} />
-    <Route path="/journey" component={AdventureHub} />
+    <Route path="/journey" component={JourneyStart} />
     <Route path="/roadmap" component={CareerPath} />
     <Route path="/mission" component={MissionScene} />
     <Route path="/quest" component={QuestDetail} />
