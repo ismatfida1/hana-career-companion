@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, Check, ExternalLink, Lock, Play, Wrench } from "l
 import { useLocation } from "wouter";
 import HanaGameFrame from "@/components/HanaGameFrame";
 import { getQuest } from "@/data/questCatalog";
+import { ResourceList } from "@/components/ResourceList";
 
 export default function QuestDetail() {
   const [location, navigate] = useLocation();
@@ -43,6 +44,11 @@ export default function QuestDetail() {
       <div className="flex items-end justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-white/40">Objective path</p><h3 className="mt-1 font-display text-2xl font-semibold">Learn → Practice → Build → Prove</h3></div><Wrench className="h-5 w-5 text-[#f1c77b]" /></div>
       <div className="mt-5 space-y-3">{quest.objectives.map((objective, index) => { const done = completed.includes(objective.id); const unlocked = index === 0 || completed.includes(quest.objectives[index - 1].id); const Icon = objective.type === "lesson" ? BookOpen : objective.type === "build" ? Wrench : objective.type === "prove" ? Check : Play; return <button key={objective.id} type="button" disabled={!unlocked} onClick={() => toggle(objective.id, index)} className={`flex w-full items-center gap-3 rounded-2xl border p-4 text-left transition ${done ? "border-emerald-300/30 bg-emerald-300/10" : unlocked ? "border-[#f1c77b]/30 bg-[#f1c77b]/5 hover:bg-[#f1c77b]/10" : "border-white/10 bg-black/10 opacity-60"}`}><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${done ? "bg-emerald-300/20 text-emerald-200" : unlocked ? "bg-[#f1c77b]/15 text-[#f1c77b]" : "bg-white/5 text-white/30"}`}>{unlocked ? <Icon className="h-4 w-4" /> : <Lock className="h-4 w-4" />}</span><span className="min-w-0 flex-1"><span className="block text-[10px] font-bold uppercase tracking-[.16em] text-white/35">Step {index + 1} · {objective.type}</span><span className="mt-1 block break-words text-sm font-semibold text-white/85">{objective.label}</span></span>{done && <Check className="h-5 w-5 shrink-0 text-emerald-200" />}</button>; })}</div>
       <button type="button" onClick={openFlow} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-full bg-[#f1c77b] px-5 py-3 font-bold text-[#172630]">{completed.length === quest.objectives.length ? "Reflect with Hana" : "Open Quest"}<ArrowRight className="h-4 w-4" /></button>
+    </section>
+
+    <section className="rounded-[30px] border border-[#f1c77b]/15 bg-white/[.045] p-5 shadow-xl backdrop-blur sm:p-7">
+      <div className="mb-5"><p className="text-xs font-bold uppercase tracking-[.16em] text-[#f1c77b]/75">Learn from the best</p><h3 className="mt-1 font-display text-2xl font-semibold">Resources for this quest</h3><p className="mt-1 text-sm text-white/50">University material, video, book, documentation, course, practice, and alternative resources are curated specifically for this quest.</p></div>
+      <ResourceList stepId={quest.id} />
     </section>
   </HanaGameFrame>;
 }
